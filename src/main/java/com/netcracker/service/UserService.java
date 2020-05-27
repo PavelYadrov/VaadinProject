@@ -18,7 +18,7 @@ public class UserService implements Serializable {
             return "Can't be empty";
         }
 
-        Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я]+(([',. -][A-Za-zа-яА-Я ])?[A-Za-zа-яА-Я]*)*$");
+        Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я.'-]+$");
         Matcher matcher = namePattern.matcher(name);
 
         if(!matcher.matches()) return "Invalid symbols";
@@ -51,13 +51,32 @@ public class UserService implements Serializable {
         }
         return null;
     }
-
-
-    public static class ServiceException extends Exception {
-        public ServiceException(String msg) {
-            super(msg);
+    public Cookie getCookie(String name){
+        Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+        if (cookies == null) return null;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals(name)) {
+                return cookie;
+            }
         }
+        return null;
     }
+
+    public String validateText(String text){
+        if (text == null){
+            return "Can't be empty";
+        }
+        Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я-0-9 ():,.'-]+$");
+        Matcher matcher = namePattern.matcher(text);
+
+        if(!matcher.matches()) return "Invalid symbols";
+
+        return null;
+    }
+
+
+
+
 
 
 }

@@ -1,43 +1,108 @@
 package com.netcracker.view;
 
+import com.netcracker.components.AdvertisementsList;
+import com.netcracker.components.AppHeader;
+import com.netcracker.components.CategoryList;
+import com.netcracker.dto.AdvertisementDTO;
 import com.netcracker.dto.UserDTO;
+import com.netcracker.service.CategoryService;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.router.*;
 import feign.FeignException;
+import javafx.scene.control.Accordion;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+@Push
+@EqualsAndHashCode(callSuper = true)
 @Route("mainPage")
-public class MainView extends VerticalLayout {
+@CssImport("./styles/main-page.css")
+@Data
+public class MainView extends VerticalLayout implements HasUrlParameter<String> {
 
     private UserDTO user;
+
+    private String queryParam;
 
     private UserService userService;
 
     private FeignUserService feign;
 
-    public MainView(@Autowired FeignUserService feignUserService,@Autowired UserService userService){
+    private String token;
+
+    private List<AdvertisementDTO> advertisementDTOS;
+
+    private AdvertisementsList advertisementsList;
+
+    private CategoryList categoryList;
+
+    public MainView(@Autowired FeignUserService feignUserService,
+                    @Autowired UserService userService, @Autowired CategoryService categoryService){
+        queryParam="1";
 
         this.userService=userService;
         this.feign=feignUserService;
 
         try {
-            String token = userService.getCookieByName("Authentication");
+            token = userService.getCookieByName("Authorization");
             user = feign.getUserInfo(token).getBody();
+
         }
         catch (FeignException.Forbidden e ){
-            UI.getCurrent().getPage().setLocation("login");
+           UI.getCurrent().getPage().setLocation("login");
+
         }
 
-        Notification notification = Notification.show("Data saved, welcome " + user);
-        notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        notification.setPosition(Notification.Position.TOP_CENTER);
+        AdvertisementsList advertisementsList = new AdvertisementsList(this.feign,this.userService,user,advertisementDTOS,queryParam);
+        advertisementsList.addClassName("advertisements-list");
+        this.advertisementsList=advertisementsList;
+
+        CategoryList categoryList = new CategoryList(feignUserService,categoryService,userService,advertisementsList,queryParam);
+        categoryList.addClassName("category-list");
+
+        this.categoryList=categoryList;
+
+        Div content = new Div(categoryList,advertisementsList);
+        content.addClassName("content");
+        content.setSizeFull();
+        add(new AppHeader(userService,user));
+        add(content);
+        addClassName("main-view");
+
+
+    }
+    public void setAdvertisements(AfterNavigationEvent afterNavigationEvent){
+
+    }
+
+
+    @Override
+    public void setParameter(BeforeEvent beforeEvent,@OptionalParameter String s) {
+        Location location = beforeEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+
+        Map<String, List<String>> parametersMap =
+                queryParameters.getParameters();
+
+        List<String> qparams= parametersMap.get("category_id");
+        if(qparams==null) queryParam="1";
+        else queryParam=qparams.get(0);
+
+        advertisementsList.loadAdvertisements(queryParam);
+
     }
 
 }

@@ -89,7 +89,7 @@ public class RegistrationView extends VerticalLayout {
 
         binder.forField(username).withValidator(this::validateUsername).asRequired().bind("username");
 
-        binder.forField(emailField).asRequired().bind("email");
+        binder.forField(emailField).asRequired("Email is not valid").bind("email");
 
         binder.forField(passwordField1).asRequired().withValidator(this::passwordValidator).bind("password");
 

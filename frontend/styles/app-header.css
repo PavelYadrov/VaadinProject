@@ -1,0 +1,30 @@
+.main-header{
+    margin: 0 auto;
+    max-width: 1300px;
+    background-color: #2761af;
+    color: #F0F0F0;
+    display: inline-block;
+
+}
+.span-username{
+    width: 150px;
+    position: relative;
+    float: right;
+    margin: 5px;
+    color: #f9eff4;
+    font-size: 20px;
+    font-weight: 200;
+}
+.BUTTON-LOGOUT{
+    width: 100px;
+    float: right;
+    margin: 5px;
+    position: relative;
+    background-color: #FFFFFF;
+}
+
+.BUTTON-LOGIN:hover {
+    background-color: #F0F0F0;
+    border: solid #95CDFF 1px;
+}
+

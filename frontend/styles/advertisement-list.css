@@ -1,10 +1,12 @@
-.advertisements-head{
- display: inline-block;
+.advertisements-head {
+    display: inline-block;
     max-width: 950px;
 }
-.advertisement-add-button{
+
+.search-button {
     float: right;
 }
-.advertisements-list{
+
+.advertisements-list {
     padding: 0;
 }

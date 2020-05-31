@@ -11,5 +11,6 @@ public class CategoryDTO {
         private String name;
         private String description;
         private Long parent_id;
+        private Boolean hasChilds;
 
 }

@@ -16,18 +16,20 @@ public class AppHeader extends HorizontalLayout {
 
     public AppHeader(UserService u, UserDTO userDTO){
         addClassName("main-header");
+        if (userDTO == null) return;
+
         Button button = new Button("Logout");
-        button.addClickListener(event ->{
-            Cookie auth = new Cookie("Authentication",null);
+        button.addClickListener(event -> {
+            Cookie auth = new Cookie("Authentication", null);
             VaadinService.getCurrentResponse().addCookie(auth);
             UI.getCurrent().getPage().setLocation("login");
         });
         setSizeFull();
         button.addClassName("BUTTON-LOGOUT");
 
-       Span username = new Span("Welcome, "+userDTO.getUsername()+"!");
-       username.addClassName("span-username");
+        Span username = new Span("Welcome, " + userDTO.getUsername() + "!");
+        username.addClassName("span-username");
 
-        add(button,username);
+        add(button, username);
     }
 }

@@ -1,4 +1,4 @@
-package com.netcracker.data;
+package com.netcracker.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

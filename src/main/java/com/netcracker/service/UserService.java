@@ -63,20 +63,38 @@ public class UserService implements Serializable {
     }
 
     public String validateText(String text){
-        if (text == null){
+        if (text == null) {
             return "Can't be empty";
         }
-        Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я-0-9 ():,.'-]+$");
+
+        if (text.trim().length() < 5) return "Can't be less than 5 symbols";
+
+
+        Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я-0-9 !():,.'-]+$");
         Matcher matcher = namePattern.matcher(text);
 
-        if(!matcher.matches()) return "Invalid symbols";
+        if (!matcher.matches()) return "Invalid symbols";
 
         return null;
     }
 
+    public String validatePrice(String price) {
+        if (price == null) {
+            return "Can't be empty";
+        }
+        if ((price.startsWith("0") && price.charAt(1) != '.') || (price.startsWith("0") && price.length() < 2)) {
+            return "Invalid number";
+        }
 
+        Pattern namePattern = Pattern.compile("^(\\d+\\.\\d+)$|^(\\d+)$");
+        Matcher matcher = namePattern.matcher(price);
+        if (!matcher.matches()) return "Invalid number";
 
+        if (price.length() > 30) {
+            return "price must be less than 30 symbols ";
+        }
 
-
+        return null;
+    }
 
 }

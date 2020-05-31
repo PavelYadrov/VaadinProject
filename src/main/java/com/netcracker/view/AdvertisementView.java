@@ -1,9 +1,7 @@
 package com.netcracker.view;
 
 import com.netcracker.components.AdvertisementFull;
-import com.netcracker.components.AdvertisementsList;
 import com.netcracker.components.AppHeader;
-import com.netcracker.components.CategoryList;
 import com.netcracker.dto.AdvertisementDTO;
 import com.netcracker.dto.UserDTO;
 import com.netcracker.service.CategoryService;
@@ -39,44 +37,40 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
         addClassName("advertisement-full");
         this.userService=userService;
         this.feign=feignUserService;
+
         try {
-            token = userService.getCookieByName("Authorization");
+            token = userService.getCookieByName("Authentication");
             user = feign.getUserInfo(token).getBody();
         }
         catch (FeignException.Forbidden e ){
             UI.getCurrent().getPage().setLocation("login");
         }
+        if (user != null) {
 
-        this.advertisementFull = new AdvertisementFull(this.feign, this.userService,categoryService,user);
-
-
-        VerticalLayout functional = new VerticalLayout();
+            this.advertisementFull = new AdvertisementFull(this.feign, this.userService, categoryService, user);
 
 
+            VerticalLayout functional = new VerticalLayout();
 
 
-
-
-        add(new AppHeader(userService,user));
+            add(new AppHeader(userService, user));
+        }
     }
 
     @Override
     public void setParameter(BeforeEvent beforeEvent,@OptionalParameter String qp) {
-        Location location = beforeEvent.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
+        if (user != null) {
+            Location location = beforeEvent.getLocation();
+            QueryParameters queryParameters = location.getQueryParameters();
 
-        Map<String, List<String>> parametersMap =
-                queryParameters.getParameters();
+            Map<String, List<String>> parametersMap = queryParameters.getParameters();
 
-        List<String> qparams= parametersMap.get("id");
-        if(qparams==null) UI.getCurrent().getPage().setLocation("mainPage");
-        else queryParam=qparams.get(0);
-
-
-        advertisementDTO = feign.getAdvertisement(token,queryParam).getBody();
+            List<String> qparams = parametersMap.get("id");
+            if (qparams == null) UI.getCurrent().getPage().setLocation("mainPage");
+            else queryParam = qparams.get(0);
 
 
+            advertisementDTO = feign.getAdvertisement(token, queryParam).getBody();
+        }
     }
-
-
 }

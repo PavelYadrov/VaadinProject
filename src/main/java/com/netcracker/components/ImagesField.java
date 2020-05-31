@@ -1,19 +1,13 @@
 package com.netcracker.components;
 
-import com.netcracker.data.AdvertisementImage;
+import com.netcracker.dto.AdvertisementImage;
 import com.vaadin.flow.component.customfield.CustomField;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
-import com.vaadin.flow.dom.DomEvent;
-import com.vaadin.flow.dom.DomEventListener;
-import com.vaadin.flow.dom.Element;
-import elemental.json.JsonObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -61,7 +55,7 @@ public class ImagesField extends CustomField<AdvertisementImage> {
                 new UploadI18N.DropFiles().setOne("Drag file here...")
                         .setMany("Drag files here..."))
                 .setAddFiles(new UploadI18N.AddFiles()
-                        .setOne("Select file").setMany("Add file"))
+                        .setOne("Select file").setMany("Add images"))
                 .setCancel("Cancel")
                 .setError(new UploadI18N.Error()
                         .setTooManyFiles("Too many files.")
@@ -89,7 +83,7 @@ public class ImagesField extends CustomField<AdvertisementImage> {
 
         upload.getStyle().set("flex-grow", "1");
 
-        upload.setAcceptedFileTypes("image/jpeg","image/png","image/jpg");
+        upload.setAcceptedFileTypes("image/jpeg", "image/png", "image/jpg");
 
         upload.setMaxFiles(10);
 
@@ -99,16 +93,24 @@ public class ImagesField extends CustomField<AdvertisementImage> {
         wrapper.add(upload);
         wrapper.getStyle().set("display", "flex");
         add(wrapper);
+
+        upload.addFailedListener(e -> setFailed(e.getReason().getMessage()));
+        upload.addFileRejectedListener(e -> setFailed(e.getErrorMessage()));
     }
 
     @Override
     protected AdvertisementImage generateModelValue() {
-        return null;
+        return image;
     }
 
     @Override
     protected void setPresentationValue(AdvertisementImage advertisementImage) {
 
+    }
+
+    private void setFailed(String message) {
+        setInvalid(true);
+        setErrorMessage(message);
     }
 
 }

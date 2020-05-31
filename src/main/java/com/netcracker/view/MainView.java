@@ -11,22 +11,16 @@ import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.*;
 import feign.FeignException;
-import javafx.scene.control.Accordion;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-@Push
 @EqualsAndHashCode(callSuper = true)
 @Route("mainPage")
 @CssImport("./styles/main-page.css")
@@ -36,6 +30,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
     private UserDTO user;
 
     private String queryParam;
+
+    private String searchParam;
 
     private UserService userService;
 
@@ -49,60 +45,57 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     private CategoryList categoryList;
 
-    public MainView(@Autowired FeignUserService feignUserService,
-                    @Autowired UserService userService, @Autowired CategoryService categoryService){
-        queryParam="1";
+    private List<Long> list;
 
-        this.userService=userService;
-        this.feign=feignUserService;
+    public MainView(@Autowired FeignUserService feignUserService,
+                    @Autowired UserService userService, @Autowired CategoryService categoryService) {
+        this.userService = userService;
+        this.feign = feignUserService;
 
         try {
-            token = userService.getCookieByName("Authorization");
+            token = userService.getCookieByName("Authentication");
             user = feign.getUserInfo(token).getBody();
-
+        } catch (FeignException.Forbidden e) {
+            UI.getCurrent().getPage().setLocation("login");
         }
-        catch (FeignException.Forbidden e ){
-           UI.getCurrent().getPage().setLocation("login");
+        if (user != null) {
+            this.advertisementsList = new AdvertisementsList(this.feign, this.userService, user, advertisementDTOS, queryParam, searchParam);
+            advertisementsList.addClassName("advertisements-list");
 
+            this.categoryList = new CategoryList(feignUserService, categoryService, userService, advertisementsList, queryParam, user);
+            categoryList.addClassName("category-list");
+
+            Div content = new Div(categoryList, advertisementsList);
+            content.addClassName("content");
+            content.setSizeFull();
+            add(new AppHeader(userService, user));
+            add(content);
+            addClassName("main-view");
         }
-
-        AdvertisementsList advertisementsList = new AdvertisementsList(this.feign,this.userService,user,advertisementDTOS,queryParam);
-        advertisementsList.addClassName("advertisements-list");
-        this.advertisementsList=advertisementsList;
-
-        CategoryList categoryList = new CategoryList(feignUserService,categoryService,userService,advertisementsList,queryParam);
-        categoryList.addClassName("category-list");
-
-        this.categoryList=categoryList;
-
-        Div content = new Div(categoryList,advertisementsList);
-        content.addClassName("content");
-        content.setSizeFull();
-        add(new AppHeader(userService,user));
-        add(content);
-        addClassName("main-view");
-
-
     }
-    public void setAdvertisements(AfterNavigationEvent afterNavigationEvent){
-
-    }
-
 
     @Override
     public void setParameter(BeforeEvent beforeEvent,@OptionalParameter String s) {
-        Location location = beforeEvent.getLocation();
-        QueryParameters queryParameters = location.getQueryParameters();
+        if (user != null) {
+            Location location = beforeEvent.getLocation();
+            QueryParameters queryParameters = location.getQueryParameters();
 
-        Map<String, List<String>> parametersMap =
-                queryParameters.getParameters();
+            Map<String, List<String>> parametersMap =
+                    queryParameters.getParameters();
 
-        List<String> qparams= parametersMap.get("category_id");
-        if(qparams==null) queryParam="1";
-        else queryParam=qparams.get(0);
-
-        advertisementsList.loadAdvertisements(queryParam);
-
+            List<String> qparams = parametersMap.get("category_id");
+            if (qparams == null) queryParam = "1";
+            else queryParam = qparams.get(0);
+            List<String> searchParams = parametersMap.get("search");
+            if (searchParams == null) searchParam = "";
+            else searchParam = searchParams.get(0);
+            try {
+                advertisementsList.loadAdvertisements(queryParam, searchParam);
+            } catch (FeignException.Forbidden e) {
+                UI.getCurrent().getPage().setLocation("login");
+            }
+            categoryList.setOpened(queryParam);
+        }
     }
 
 }

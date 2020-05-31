@@ -72,7 +72,7 @@ public class LoginView extends VerticalLayout {
                 ResponseEntity<String> response = feignUserService.login(loginForm);
                 String token = response.getBody();
 
-                Cookie tokenCookie = new Cookie("Authorization",token);
+                Cookie tokenCookie = new Cookie("Authentication", token);
                 VaadinService.getCurrentResponse().addCookie(tokenCookie);
 
                 UI.getCurrent().getPage().setLocation("mainPage");

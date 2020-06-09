@@ -8,7 +8,6 @@ import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Label;
@@ -17,76 +16,91 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.ValueContext;
-import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.Date;
+public class AdvertisementUpdate extends VerticalLayout {
 
-@CssImport("./styles/advertisement-add.css")
-public class AdvertisementAdd extends VerticalLayout {
+    private Label headAdvertisement = new Label("Update Advertisement Info");
+    private TextField name = new TextField("Title");
+    private TextField description = new TextField("Description");
+    private TextField price = new TextField("Price");
 
-    Label headAdvertisement = new Label("Create new Advertisement");
-    TextField name = new TextField("Title");
-    TextField description = new TextField("Description");
-    TextField price = new TextField("Price");
-    ImagesField imagesField = new ImagesField();
+    private TextField category = new TextField("Category Id");
+    private TextField owner = new TextField("User Id");
+    private TextField date = new TextField("Registration Date");
 
-    UserService userService;
+    private Boolean admin;
 
-    Button submitButton = new Button("Create Advertisement");
+    private AdvertisementDTO advertisementDTO;
+
+    private UserService userService;
+
+    private Button submitButton = new Button("Update Advertisement");
 
     private BeanValidationBinder<AdvertisementAddBinder> binder;
 
-    public  AdvertisementAdd(UserDTO user, FeignUserService feignUserService,
-                            UserService userService, Dialog dialog, String qp){
+    public AdvertisementUpdate(UserDTO user, FeignUserService feignUserService, Boolean adminFlag,
+                               UserService userService, Dialog dialog, AdvertisementDTO advertisementDTO) {
         addClassName("advertisement-add");
-        this.userService=userService;
-        binder= new BeanValidationBinder<>(AdvertisementAddBinder.class);
+        this.userService = userService;
+        this.advertisementDTO = advertisementDTO;
+        this.admin = adminFlag;
+        binder = new BeanValidationBinder<>(AdvertisementAddBinder.class);
         headAdvertisement.addClassName("adv-head");
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         submitButton.setMaxWidth("800");
         submitButton.setSizeFull();
 
         name.setMaxWidth("800");
+        name.setValue(advertisementDTO.getName());
         name.setSizeFull();
 
         description.setMaxWidth("800");
+        description.setValue(advertisementDTO.getDescription());
         description.setSizeFull();
 
         price.setMaxWidth("800");
+        price.setValue(advertisementDTO.getPrice().toString());
         price.setSizeFull();
 
+        if (admin) {
+            owner.setMaxWidth("800");
+            owner.setValue(advertisementDTO.getUser_id().toString());
+            owner.setSizeFull();
+
+            category.setMaxWidth("800");
+            category.setValue(advertisementDTO.getCategory_id().toString());
+            category.setSizeFull();
+        }
+
         submitButton.addClickListener(buttonClickEvent -> {
-            AdvertisementDTO advertisement = new AdvertisementDTO();
             String token = userService.getCookieByName("Authentication");
-
-            if (qp == null) {
-                advertisement.setCategory_id(Long.parseLong("1"));
-            } else advertisement.setCategory_id(Long.parseLong(qp));
-            advertisement.setUser_id(user.getId());
-            advertisement.setName(name.getValue().trim());
-            advertisement.setDescription(description.getValue().trim());
-            advertisement.setDate(new Date());
-            advertisement.setPrice(Double.parseDouble(price.getValue()));
-            advertisement.setUrls(new ArrayList<>());
-
-            imagesField.getImages().forEach(advertisementImage -> {
-                advertisement.getUrls().add(feignUserService.addImage(token, advertisementImage).getBody());
-            });
-            if (feignUserService.addAdvertisement(token, advertisement).getStatusCode() == HttpStatus.OK) {
-                imagesField.getImages().clear();
+            advertisementDTO.setName(name.getValue());
+            advertisementDTO.setDescription(description.getValue());
+            advertisementDTO.setPrice(Double.parseDouble(price.getValue()));
+            if (admin) {
+                advertisementDTO.setUser_id(Long.parseLong(owner.getValue()));
+                advertisementDTO.setCategory_id(Long.parseLong(category.getValue()));
+                feignUserService.adminUpdateAdvertisement(token, advertisementDTO);
                 dialog.close();
                 dialog.removeAll();
                 UI.getCurrent().getPage().reload();
+                return;
             }
+            feignUserService.updateAdvertisement(token, advertisementDTO);
+            dialog.close();
+            dialog.removeAll();
+            UI.getCurrent().getPage().reload();
         });
         Div wrapper = new Div();
         wrapper.add(headAdvertisement);
 
-        VerticalLayout head = new VerticalLayout(name,description,price);
+        VerticalLayout head = new VerticalLayout(name, description, price);
+        if (adminFlag) {
+            head.add(category, owner);
+        }
         head.setMaxWidth("800");
         head.setSizeFull();
-        wrapper.add(head,imagesField,submitButton);
+        wrapper.add(head, submitButton);
         wrapper.setMaxWidth("970");
         wrapper.setSizeFull();
         wrapper.addClassName("adv-add-wrapper");
@@ -121,3 +135,4 @@ public class AdvertisementAdd extends VerticalLayout {
         return ValidationResult.error(errorMsg);
     }
 }
+

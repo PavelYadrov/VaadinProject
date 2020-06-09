@@ -1,6 +1,7 @@
 package com.netcracker.view;
 
 
+import com.netcracker.components.AvatarField;
 import com.netcracker.dto.UserRegisterDTO;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
@@ -56,10 +57,12 @@ public class RegistrationView extends VerticalLayout {
         passwordField2 = new PasswordField("Password again");
         Span errorMessage = new Span();
         Button submitButton = new Button("Sing up");
+        AvatarField avatar = new AvatarField();
+
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         FormLayout formLayout = new FormLayout(title, username, firstnameField, lastnameField, passwordField1, passwordField2,
-                emailField, errorMessage, submitButton);
+                emailField, avatar, errorMessage, submitButton);
 
         formLayout.setMaxWidth("500px");
         formLayout.getStyle().set("margin", "0 auto");
@@ -107,7 +110,11 @@ public class RegistrationView extends VerticalLayout {
 
                 UserRegisterDTO newUser = new UserRegisterDTO();
 
+                String url = feignUserService.addImage("", avatar.getValue()).getBody();
+
                 binder.writeBean(newUser);
+
+                newUser.setAvatar(url);
 
                 feignUserService.registration(newUser);
                 showSuccess(newUser);

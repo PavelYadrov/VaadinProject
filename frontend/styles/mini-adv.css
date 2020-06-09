@@ -5,31 +5,32 @@
     border-radius: 20px 20px 20px 20px;
     padding: 7px;
     box-shadow: 0px 0px 13px 6px rgba(7, 8, 8, 0.12);
+    cursor: pointer;
 }
-.mini-adv:hover{
+
+.mini-adv:hover {
     background-color: #F0F0F0;
     border: solid #95CDFF 1px;
 }
-.name {
+
+.firstLine, .secondLine {
+    margin-top: 10px;
+    display: inline-block;
+}
+
+.name, .date, .price {
     color: #000008;
-    margin-top: 2px;
-    font-size: 15px;
+    font-size: 18px;
     font-weight: bolder;
 
 }
-.description{
-    margin-top: 2px;
+
+.price, .date {
+    float: right;
+}
+
+.description {
+    color: #000008;
     font-size: 15px;
     font-weight: bolder;
-}
-.price{
-}
-.date{
-    padding-left: 20px;
-    font-size: 15px;
-}
-.third-line{
-    margin-top: 2px;
-    font-weight: bolder;
-    font-size: 15px;
 }

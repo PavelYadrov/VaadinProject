@@ -1,4 +1,4 @@
-.main-header{
+.main-header {
     margin: 0 auto;
     max-width: 1300px;
     background-color: #2761af;
@@ -6,8 +6,9 @@
     display: inline-block;
 
 }
-.span-username{
-    width: 150px;
+
+.span-username, .username {
+    max-width: 200px;
     position: relative;
     float: right;
     margin: 5px;
@@ -15,16 +16,37 @@
     font-size: 20px;
     font-weight: 200;
 }
-.BUTTON-LOGOUT{
-    width: 100px;
-    float: right;
+
+.button-logout, .button-main {
+    max-width: 120px;
     margin: 5px;
     position: relative;
     background-color: #FFFFFF;
+    cursor: pointer;
 }
 
-.BUTTON-LOGIN:hover {
+.button-logout:hover, .button-main:hover {
     background-color: #F0F0F0;
     border: solid #95CDFF 1px;
+}
+
+.button-logout {
+    float: right;
+}
+
+.button-main {
+    float: left;
+}
+
+.username {
+    margin: 0;
+}
+
+.user-href:hover {
+    color: #95CDFF;
+}
+
+.user-href {
+    cursor: pointer;
 }
 

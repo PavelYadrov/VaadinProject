@@ -30,7 +30,6 @@ public class ImagesField extends CustomField<AdvertisementImage> {
 
     public ImagesField() {
 
-
         MultiFileMemoryBuffer multiFileMemoryBuffer = new MultiFileMemoryBuffer();
 
         upload = new Upload(multiFileMemoryBuffer);
@@ -85,9 +84,9 @@ public class ImagesField extends CustomField<AdvertisementImage> {
 
         upload.setAcceptedFileTypes("image/jpeg", "image/png", "image/jpg");
 
-        upload.setMaxFiles(10);
+        upload.setMaxFiles(9);
 
-        upload.setMaxFileSize(1 * 1024 * 1024);
+        upload.setMaxFileSize(1024 * 1024);
 
         Div wrapper = new Div();
         wrapper.add(upload);
@@ -105,7 +104,7 @@ public class ImagesField extends CustomField<AdvertisementImage> {
 
     @Override
     protected void setPresentationValue(AdvertisementImage advertisementImage) {
-
+        image = advertisementImage;
     }
 
     private void setFailed(String message) {

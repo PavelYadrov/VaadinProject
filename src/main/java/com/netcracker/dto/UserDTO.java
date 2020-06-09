@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
@@ -14,5 +16,6 @@ public class UserDTO {
     private String lastName;
     private String email;
     private Status status;
-
+    private String avatar;
+    private Date regDate;
 }

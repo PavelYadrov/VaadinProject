@@ -1,5 +1,9 @@
 package com.netcracker.service;
 
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.router.BeforeEvent;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.VaadinService;
 import org.springframework.stereotype.Service;
 
@@ -7,6 +11,7 @@ import javax.servlet.http.Cookie;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,7 +87,7 @@ public class UserService implements Serializable {
         if (price == null) {
             return "Can't be empty";
         }
-        if ((price.startsWith("0") && price.charAt(1) != '.') || (price.startsWith("0") && price.length() < 2)) {
+        if ((price.startsWith("0") && price.length() < 2) || (price.startsWith("0") && price.charAt(1) != '.')) {
             return "Invalid number";
         }
 
@@ -95,6 +100,26 @@ public class UserService implements Serializable {
         }
 
         return null;
+    }
+
+    public boolean checkParameter(String param) {
+        Pattern namePattern = Pattern.compile("^(\\d+)$");
+        Matcher matcher = namePattern.matcher(param);
+        if (!matcher.matches()) return false;
+
+        return true;
+    }
+
+    public String setParam(BeforeEvent beforeEvent, String id) {
+        Location location = beforeEvent.getLocation();
+        QueryParameters queryParameters = location.getQueryParameters();
+
+        Map<String, List<String>> parametersMap = queryParameters.getParameters();
+        List<String> params = parametersMap.get("id");
+        if (params == null || !checkParameter(params.get(0))) {
+            UI.getCurrent().getPage().setLocation("mainPage");
+            return null;
+        } else return params.get(0);
     }
 
 }

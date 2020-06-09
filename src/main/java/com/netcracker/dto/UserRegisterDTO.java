@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,6 +29,7 @@ public class UserRegisterDTO {
     @Email
     private String email;
 
-
     private Status status;
+
+    private String avatar;
 }

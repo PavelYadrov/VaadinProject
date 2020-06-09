@@ -33,6 +33,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
 
     private String searchParam;
 
+    private String pageParam;
+
     private UserService userService;
 
     private FeignUserService feign;
@@ -59,7 +61,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             UI.getCurrent().getPage().setLocation("login");
         }
         if (user != null) {
-            this.advertisementsList = new AdvertisementsList(this.feign, this.userService, user, advertisementDTOS, queryParam, searchParam);
+            this.advertisementsList = new AdvertisementsList(this.feign, this.userService, pageParam, user,
+                    advertisementDTOS, queryParam, searchParam);
             advertisementsList.addClassName("advertisements-list");
 
             this.categoryList = new CategoryList(feignUserService, categoryService, userService, advertisementsList, queryParam, user);
@@ -68,7 +71,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             Div content = new Div(categoryList, advertisementsList);
             content.addClassName("content");
             content.setSizeFull();
-            add(new AppHeader(userService, user));
+            add(new AppHeader(false, user));
             add(content);
             addClassName("main-view");
         }
@@ -84,18 +87,23 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
                     queryParameters.getParameters();
 
             List<String> qparams = parametersMap.get("category_id");
-            if (qparams == null) queryParam = "1";
+            if (qparams == null || !userService.checkParameter(qparams.get(0))) queryParam = "1";
             else queryParam = qparams.get(0);
             List<String> searchParams = parametersMap.get("search");
             if (searchParams == null) searchParam = "";
             else searchParam = searchParams.get(0);
+            List<String> pageParams = parametersMap.get("page");
+            if (pageParams == null || !userService.checkParameter(pageParams.get(0))) pageParam = "1";
+            else pageParam = pageParams.get(0);
+
             try {
-                advertisementsList.loadAdvertisements(queryParam, searchParam);
+                advertisementsList.loadAdvertisements(queryParam, searchParam, pageParam);
             } catch (FeignException.Forbidden e) {
                 UI.getCurrent().getPage().setLocation("login");
             }
             categoryList.setOpened(queryParam);
         }
     }
+
 
 }

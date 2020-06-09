@@ -1,6 +1,7 @@
 .advertisements-head {
     display: inline-block;
-    max-width: 950px;
+/*    max-width: 950px;
+    max-height: 100px;*/
 }
 
 .search-button {
@@ -9,4 +10,28 @@
 
 .advertisements-list {
     padding: 0;
+}
+
+.next-page {
+    float: right;
+    width: 100%;
+    max-width: 131px;
+}
+
+.prev-page {
+    width: 100%;
+    max-width: 131px;
+}
+
+.info {
+    text-align: center;
+}
+
+.page-info {
+    font-size: 21px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    padding-top: 3px;
+    /*  max-width: 561px;*/
 }

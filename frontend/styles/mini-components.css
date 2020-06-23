@@ -1,4 +1,5 @@
-.mini-adv {
+.mini-adv, .mini-chat {
+    width: 100%;
     max-width: 930px;
     max-height: 100px;
     border: #2b81af;
@@ -8,7 +9,7 @@
     cursor: pointer;
 }
 
-.mini-adv:hover {
+.mini-adv:hover, .mini-chat:hover {
     background-color: #F0F0F0;
     border: solid #95CDFF 1px;
 }
@@ -16,21 +17,27 @@
 .firstLine, .secondLine {
     margin-top: 10px;
     display: inline-block;
+    width: 100%;
 }
 
-.name, .date, .price {
+.name, .date, .price, .chat-username {
     color: #000008;
     font-size: 18px;
     font-weight: bolder;
-
 }
 
-.price, .date {
+.price, .date, .last-update {
     float: right;
 }
 
-.description {
+.description, .last-update, .last-message {
     color: #000008;
     font-size: 15px;
     font-weight: bolder;
+}
+
+.mini-adv-image {
+    border-radius: 20px 20px 20px 20px;
+    border: 0px solid #000000;
+
 }

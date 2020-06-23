@@ -12,6 +12,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.router.*;
 import feign.FeignException;
 import lombok.Data;
@@ -25,6 +26,7 @@ import java.util.Map;
 @Route("mainPage")
 @CssImport("./styles/main-page.css")
 @Data
+@Push
 public class MainView extends VerticalLayout implements HasUrlParameter<String> {
 
     private UserDTO user;
@@ -71,7 +73,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             Div content = new Div(categoryList, advertisementsList);
             content.addClassName("content");
             content.setSizeFull();
-            add(new AppHeader(false, user));
+            add(new AppHeader(false, true, true, user, feign, userService));
             add(content);
             addClassName("main-view");
         }

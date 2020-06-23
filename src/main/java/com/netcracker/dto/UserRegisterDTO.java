@@ -17,12 +17,10 @@ public class UserRegisterDTO {
     @Length(min=6,max=40)
     private String password;
 
-
     @Length(min=4,max=30)
     private String username;
 
     private String firstName;
-
 
     private String lastName;
 

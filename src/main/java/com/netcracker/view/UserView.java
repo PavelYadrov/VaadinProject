@@ -1,9 +1,9 @@
 package com.netcracker.view;
 
 import com.netcracker.components.AppHeader;
+import com.netcracker.components.MiniAdvertisement;
 import com.netcracker.dto.AdvertisementDTO;
 import com.netcracker.dto.CustomPair;
-import com.netcracker.dto.MiniAdvertisement;
 import com.netcracker.dto.UserDTO;
 import com.netcracker.service.CategoryService;
 import com.netcracker.service.FeignUserService;
@@ -16,7 +16,9 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -52,12 +54,16 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
     private List<AdvertisementDTO> usersAdvertisements;
 
     private Image avatar = new Image();
+    private Image miniAvatar = new Image();
     private Span person = new Span();
+    private Span fullName = new Span();
+    private Span username = new Span();
     private Span email = new Span();
     private Span registrationDate = new Span();
     private VerticalLayout userInfo = new VerticalLayout();
     private VerticalLayout image = new VerticalLayout();
     private VerticalLayout advertisements = new VerticalLayout();
+    private HorizontalLayout dialogInfo = new HorizontalLayout();
     private Dialog changePasswordWindow = new Dialog();
     private Dialog changeStatusWindow = new Dialog();
 
@@ -102,11 +108,17 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             avatar.addClassName("user-avatar");
             userInfo.addClassName("user-info");
             person.addClassName("user");
+            fullName.addClassName("user");
+            username.addClassName("user");
             email.addClassName("user");
             registrationDate.addClassName("user");
 
             userInfo.setMinWidth("600px");
             userInfo.setMinHeight("600px");
+
+            miniAvatar.setWidth("50px");
+            miniAvatar.setHeight("50px");
+            miniAvatar.addClassName("mini-avatar");
 
             delete.getStyle().set("margin-left", "3%");
             delete.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
@@ -156,7 +168,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
     private void loadUserPage() {
         this.removeAll();
-        add(new AppHeader(true, user));
+        add(new AppHeader(true, true, false, user, feign, userService));
 
         if (deleteListener != null) deleteListener.remove();
         if (passListener != null) passListener.remove();
@@ -165,7 +177,10 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
         if (submitStatusListener != null) submitStatusListener.remove();
 
         avatar.setSrc(imageRoute + owner.getAvatar());
+        miniAvatar.setSrc(imageRoute + owner.getAvatar());
         person.setText("Full Name: " + owner.getLastName() + " " + owner.getFirstName());
+        fullName.setText(owner.getLastName() + " " + owner.getFirstName());
+        username.setText("Username: " + owner.getUsername());
         registrationDate.setText("Registration date: "
                 + owner.getRegDate().toLocaleString().substring(0, owner.getRegDate().toLocaleString().length() - 3));
 
@@ -173,9 +188,12 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
         userInfo.add(registrationDate);
         image.add(avatar);
 
+        dialogInfo.add(miniAvatar, fullName);
+
         try {
             feign.roleCheck(token);
             email.setText("Email: " + owner.getEmail());
+            userInfo.add(username);
             userInfo.add(email);
 
             Div tools = new Div();
@@ -188,6 +206,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             });
 
             passListener = changePassword.addClickListener(buttonClickEvent -> {
+                changePasswordWindow.add(dialogInfo);
                 changePasswordWindow.add(password, submitPassword);
                 changePasswordWindow.open();
             });
@@ -200,17 +219,18 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
                 changePasswordWindow.close();
             });
 
+            Select<String> select = new Select<>();
+            select.setLabel("Choose status");
+            select.setItems(statusList);
+            select.setValue(statusList.get(0));
+            status.setValue(statusList.get(0));
+            select.addValueChangeListener(event -> {
+                status.setValue(event.getValue());
+            });
+
             statusListener = changeStatus.addClickListener(buttonClickEvent -> {
-                VerticalLayout statuses = new VerticalLayout();
-                statusList.forEach(s -> {
-                    Span statusAwailable = new Span(s);
-                    statusAwailable.addClickListener(spanClickEvent -> {
-                        status.setValue(statusAwailable.getText());
-                    });
-                    statusAwailable.getStyle().set("cursor", "pointer");
-                    statuses.add(statusAwailable);
-                });
-                changeStatusWindow.add(status, submitStatus, statuses);
+                changeStatusWindow.add(dialogInfo);
+                changeStatusWindow.add(select, submitStatus);
                 changeStatusWindow.open();
             });
             submitStatusListener = submitStatus.addClickListener(buttonClickEvent -> {
@@ -242,10 +262,8 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             userInfo.add(advs);
         }
 
-
         Div content = new Div(image, userInfo);
         content.addClassName("user-page");
         add(content);
-
     }
 }

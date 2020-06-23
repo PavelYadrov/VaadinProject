@@ -1,11 +1,10 @@
 .advertisements-head {
     display: inline-block;
-/*    max-width: 950px;
-    max-height: 100px;*/
 }
 
 .search-button {
     float: right;
+    cursor: pointer;
 }
 
 .advertisements-list {
@@ -16,11 +15,13 @@
     float: right;
     width: 100%;
     max-width: 131px;
+    cursor: pointer;
 }
 
 .prev-page {
     width: 100%;
     max-width: 131px;
+    cursor: pointer;
 }
 
 .info {
@@ -33,5 +34,4 @@
     text-align: center;
     margin: 0;
     padding-top: 3px;
-    /*  max-width: 561px;*/
 }

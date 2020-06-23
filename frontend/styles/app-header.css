@@ -30,7 +30,7 @@
     border: solid #95CDFF 1px;
 }
 
-.button-logout {
+.button-logout, .messages-button {
     float: right;
 }
 
@@ -46,7 +46,7 @@
     color: #95CDFF;
 }
 
-.user-href {
+.user-href, .button-main, .button-logout, .messages-button {
     cursor: pointer;
 }
 

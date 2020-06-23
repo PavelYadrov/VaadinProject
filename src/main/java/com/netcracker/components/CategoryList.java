@@ -48,7 +48,6 @@ public class CategoryList extends FormLayout {
 
             mainPanel.addOpenedChangeListener(openedChangeEvent -> {
                 if (openedChangeEvent.isOpened()) {
-
                     if (mainPanel.getContent().count() > 0L) return;
                     this.initAccordions("1", list).forEach(mainPanel::addContent);
                 }
@@ -72,33 +71,24 @@ public class CategoryList extends FormLayout {
                     this.setSpanListener(span, span.getId().get(), counter);
                     currentPanel.addContent(span);
                 });
-
                 List<AccordionPanel> accordions = categoryDTOS.stream().filter(CategoryDTO::getHasChilds).map(categoryDTO -> {
-
                         AccordionPanel accordion = new AccordionPanel();
                         currentPanel = accordion;
                         accordion.setId(categoryDTO.getId().toString());
                         accordion.addThemeVariants(DetailsVariant.FILLED);
                         Span acctext = new Span(categoryDTO.getName());
                     this.setSpanListener(acctext, accordion.getId().get(), 0.0);
-
                         Long currId = Long.parseLong(accordion.getId().get());
-
                         if (list != null && list.contains(currId)) {
                                 accordion.setOpened(true);
                                 list.remove(currId);
                         }
-
                         accordion.setSummary(acctext);
-
                         accordion.addOpenedChangeListener(openedChangeEvent -> {
                                 if (openedChangeEvent.isOpened()) {
-
                                         if (accordion.getContent().count() > 0L) return;
-
                                     List<AccordionPanel> accordionPanels = initAccordions(accordion.getId().get(), list);
                                     accordionPanels.forEach(accordion::addContent);
-
                                 }
                         });
                     return accordion;

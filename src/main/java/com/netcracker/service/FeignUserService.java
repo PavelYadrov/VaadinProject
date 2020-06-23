@@ -82,4 +82,22 @@ public interface FeignUserService {
     @PostMapping(value = "api/user/getAdvertisementsByUser")
     ResponseEntity<List<AdvertisementDTO>> getUsersAdvertisements(@RequestHeader(name = "Authentication") String token,
                                                                   @RequestBody String id);
+
+    @GetMapping(value = "api/user/getUserRooms")
+    ResponseEntity<List<RoomDTO>> getUserRooms(@RequestHeader(name = "Authentication") String token);
+
+    @PostMapping(value = "api/user/getRoomMessages")
+    ResponseEntity<List<MessageDTO>> getRoomMessages(@RequestHeader(name = "Authentication") String token,
+                                                     @RequestBody String id);
+
+    @PostMapping(value = "api/user/receiveMessage")
+    ResponseEntity<MessageDTO> receiveMessage(@RequestHeader(name = "Authentication") String token,
+                                              @RequestBody CustomPair pair);
+
+    @GetMapping(value = "api/user/hasUnreadMessages")
+    ResponseEntity<Boolean> hasUnreadMessages(@RequestHeader(name = "Authentication") String token);
+
+    @PostMapping(value = "api/user/getRoomById")
+    ResponseEntity<RoomDTO> getRoomById(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
+
 }

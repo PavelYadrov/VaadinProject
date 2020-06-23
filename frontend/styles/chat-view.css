@@ -1,0 +1,19 @@
+.chat-view, .content-chat {
+    max-width: 1300px;
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.chat-dialogs {
+    flex: 2;
+    width: 100%;
+}
+
+.chat-main {
+    flex: 3;
+    width: 100%;
+    max-width: 800px;
+    min-width: 800px;
+    overflow: paged-y;
+}

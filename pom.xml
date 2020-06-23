@@ -28,7 +28,7 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <!-- Repository used by many Vaadin add-ons -->
+
         <repository>
             <id>vaadin-addons</id>
             <url>https://maven.vaadin.com/vaadin-addons</url>
@@ -82,6 +82,17 @@
                 vaadin-spring-boot-starter
             </artifactId>
             <version>${vaadin.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.vaadin.componentfactory</groupId>
+            <artifactId>chat</artifactId>
+            <version>2.0.0</version>
         </dependency>
 
     </dependencies>

@@ -22,6 +22,7 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.ValueContext;
+import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.router.Route;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +93,8 @@ public class RegistrationView extends VerticalLayout {
 
         binder.forField(username).withValidator(this::validateUsername).asRequired().bind("username");
 
-        binder.forField(emailField).asRequired("Email is not valid").bind("email");
+        binder.forField(emailField).asRequired("Email is not valid").withValidator(new EmailValidator(
+                "This doesn't look like a valid email address")).bind("email");
 
         binder.forField(passwordField1).asRequired().withValidator(this::passwordValidator).bind("password");
 
@@ -110,11 +112,16 @@ public class RegistrationView extends VerticalLayout {
 
                 UserRegisterDTO newUser = new UserRegisterDTO();
 
-                String url = feignUserService.addImage("", avatar.getValue()).getBody();
-
                 binder.writeBean(newUser);
 
-                newUser.setAvatar(url);
+                if (avatar.getValue() != null) {
+                    String url = feignUserService.addImage("", avatar.getValue()).getBody();
+                    newUser.setAvatar(url);
+                } else {
+                    newUser.setAvatar("no-avatar.png");
+                }
+
+                binder.writeBean(newUser);
 
                 feignUserService.registration(newUser);
                 showSuccess(newUser);

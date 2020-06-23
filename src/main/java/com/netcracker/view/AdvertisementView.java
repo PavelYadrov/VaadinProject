@@ -2,9 +2,11 @@ package com.netcracker.view;
 
 import com.netcracker.components.AdvertisementUpdate;
 import com.netcracker.components.AppHeader;
+import com.netcracker.components.ChatEvent;
 import com.netcracker.dto.AdvertisementDTO;
+import com.netcracker.dto.CustomPair;
+import com.netcracker.dto.MessageDTO;
 import com.netcracker.dto.UserDTO;
-import com.netcracker.service.CategoryService;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
@@ -17,12 +19,15 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.shared.Registration;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.UnicastProcessor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +36,11 @@ import java.util.Map;
 
 @Route("advertisement")
 @CssImport(value = "./styles/advertisement-page.css")
+@Push
 public class AdvertisementView extends VerticalLayout implements HasUrlParameter<String> {
+
+    private UnicastProcessor<ChatEvent> publisher;
+
     private UserDTO user;
 
     private String queryParam;
@@ -45,6 +54,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private AdvertisementDTO advertisementDTO;
 
     private Image currentImage = new Image();
+    private Image avatar = new Image();
 
     private String imageRoute = "http://localhost:8090/images/";
 
@@ -52,24 +62,32 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private HorizontalLayout secondImagesLayer = new HorizontalLayout();
     private VerticalLayout images = new VerticalLayout();
     private VerticalLayout info = new VerticalLayout();
+    private HorizontalLayout dialogInfo = new HorizontalLayout();
 
     private Span title = new Span();
     private Span price = new Span();
     private Span description = new Span();
     private Span person = new Span();
+    private Span fullName = new Span();
+    private Span name = new Span();
 
     private Button delete = new Button("Delete");
     private Button update = new Button("Update");
-    private Button message = new Button("Send Message");
+    private Button messageButton = new Button("Send Message");
 
     private Registration deleteListener;
     private Registration updateListener;
     private Registration personListener;
+    private Registration messageButtonListener;
 
     private Dialog changeAdvertisement = new Dialog();
 
-    public AdvertisementView(@Autowired FeignUserService feignUserService,
-                             @Autowired UserService userService, @Autowired CategoryService categoryService) {
+    private Dialog sendMessage = new Dialog();
+    private TextField message = new TextField("Write new message");
+    private Button sendMessageButton = new Button("send");
+    private Registration sendButtonListener;
+
+    public AdvertisementView(@Autowired FeignUserService feignUserService, @Autowired UserService userService) {
         addClassName("content");
         this.userService = userService;
         this.feign = feignUserService;
@@ -77,6 +95,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
         try {
             token = userService.getCookieByName("Authentication");
             user = feign.getUserInfo(token).getBody();
+            publisher = userService.getPublisher();
         } catch (FeignException.Forbidden e) {
             UI.getCurrent().getPage().setLocation("login");
         }
@@ -92,8 +111,8 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
             description.addClassName("description-adv");
             person.addClassName("person-adv");
 
-            message.getStyle().set("margin-left", "20px");
-            message.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_PRIMARY);
+            messageButton.getStyle().set("margin-left", "20px");
+            messageButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_PRIMARY);
             delete.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_PRIMARY);
             delete.getStyle().set("margin-left", "20px");
             update.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -115,6 +134,10 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
             info.setMaxWidth("600px");
             info.setMinWidth("600px");
             info.setSizeFull();
+
+            avatar.setWidth("50px");
+            avatar.setHeight("50px");
+            avatar.addClassName("mini-avatar");
 
             changeAdvertisement.addDialogCloseActionListener(dialogCloseActionEvent -> {
                 changeAdvertisement.close();
@@ -145,7 +168,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private void loadAdvertisement(AdvertisementDTO advertisementDTO) {
         this.removeAll();
 
-        add(new AppHeader(true, user));
+        add(new AppHeader(true, true, true, user, feign, userService));
         Div content = new Div(images, info);
         content.addClassName("content-adv");
         add(content);
@@ -154,6 +177,8 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
         if (deleteListener != null) deleteListener.remove();
         if (updateListener != null) updateListener.remove();
         if (personListener != null) personListener.remove();
+        if (messageButtonListener != null) messageButtonListener.remove();
+        if (sendButtonListener != null) sendButtonListener.remove();
 
         title.setText(advertisementDTO.getName());
         if (advertisementDTO.getPrice().equals(0.0)) {
@@ -218,23 +243,28 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
         description.getStyle().set("padding-top", "10px");
         info.add(description);
 
-        Span fullName = new Span(advertisementDTO.getLastName() + " " + advertisementDTO.getFirstName());
+        fullName.setText(advertisementDTO.getLastName() + " " + advertisementDTO.getFirstName());
         fullName.addClassName("full-name");
+
+        name.setText(advertisementDTO.getLastName() + " " + advertisementDTO.getFirstName());
+        name.addClassName("user");
+        avatar.setSrc(imageRoute + advertisementDTO.getAvatar());
+        dialogInfo.add(avatar, name);
 
         person.setText("Owner: ");
         personListener = fullName.addClickListener(spanClickEvent -> {
-            List<String> param1 = new ArrayList<>();
-            Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();
-            param1.add(advertisementDTO.getUser_id().toString());
-
-            parametersMap.put("id", param1);
-
-            QueryParameters qp = new QueryParameters(parametersMap);
-            UI.getCurrent().navigate("user", qp);
+            setParam("user", advertisementDTO.getUser_id().toString());
         });
+
         Div owner = new Div();
-        owner.add(person, fullName, message);
+
+        if (user.getId().equals(advertisementDTO.getUser_id())) {
+            owner.add(person, fullName);
+        } else {
+            owner.add(person, fullName, messageButton);
+        }
         info.add(owner);
+
         try {
             feign.roleCheck(token);
             setTools(true);
@@ -244,6 +274,21 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
             }
         }
 
+        messageButtonListener = messageButton.addClickListener(buttonClickEvent -> {
+            sendMessage.add(dialogInfo);
+            sendMessage.add(message, sendMessageButton);
+            sendMessage.open();
+        });
+
+        sendButtonListener = sendMessageButton.addClickListener(buttonClickEvent -> {
+            CustomPair pair = new CustomPair();
+            pair.setFirstLine(advertisementDTO.getUser_id().toString());
+            pair.setSecondLine(message.getValue());
+            MessageDTO mess = feign.receiveMessage(token, pair).getBody();
+            publisher.onNext(new ChatEvent(mess));
+            sendMessage.close();
+            sendMessage.removeAll();
+        });
     }
 
     private Image setImage(String url, String indent) {
@@ -286,5 +331,16 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
             changeAdvertisement.add(new AdvertisementUpdate(user, feign, adminFlag, userService, changeAdvertisement, advertisementDTO));
             changeAdvertisement.open();
         });
+    }
+
+    private void setParam(String page, String param) {
+        List<String> param1 = new ArrayList<>();
+        Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();
+        param1.add(param);
+
+        parametersMap.put("id", param1);
+
+        QueryParameters qp = new QueryParameters(parametersMap);
+        UI.getCurrent().navigate(page, qp);
     }
 }

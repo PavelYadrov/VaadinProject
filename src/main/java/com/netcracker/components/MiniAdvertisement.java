@@ -1,5 +1,6 @@
-package com.netcracker.dto;
+package com.netcracker.components;
 
+import com.netcracker.dto.AdvertisementDTO;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Image;
@@ -9,7 +10,6 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +18,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@NoArgsConstructor
-@CssImport("./styles/mini-adv.css")
+@CssImport("./styles/mini-components.css")
 public class MiniAdvertisement extends HorizontalLayout {
 
     private String imageRoute = "http://localhost:8090/images/";
@@ -40,6 +39,7 @@ public class MiniAdvertisement extends HorizontalLayout {
         }
         currentImage.setMaxHeight("100px");
         currentImage.setMaxWidth("100px");
+        currentImage.addClassName("mini-adv-image");
 
         name = new Span(advertisement.getName());
         name.addClassName("name");
@@ -53,7 +53,7 @@ public class MiniAdvertisement extends HorizontalLayout {
         if (advertisement.getPrice().toString().equals("0.0")) {
             price = new Span("Price: FREE!");
         } else {
-            price = new Span("Price: " + advertisement.getPrice().toString() + "$");
+            price = new Span(advertisement.getPrice().toString() + "$");
         }
         price.addClassName("price");
 
@@ -78,9 +78,7 @@ public class MiniAdvertisement extends HorizontalLayout {
         this.addClassName("mini-adv");
         setWidthFull();
 
-        //TODO Add redirect to advertisement page
         this.addClickListener(formLayoutClickEvent -> {
-
             List<String> param = new ArrayList<>();
             Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();
             param.add(advertisement.getId().toString());

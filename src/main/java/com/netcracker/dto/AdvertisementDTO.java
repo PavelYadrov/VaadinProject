@@ -29,4 +29,6 @@ public class AdvertisementDTO {
     private Date date;
 
     private List<String> urls;
+
+    private String avatar;
 }

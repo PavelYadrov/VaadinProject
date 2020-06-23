@@ -1,6 +1,9 @@
 package com.netcracker.components;
 
-import com.netcracker.dto.*;
+import com.netcracker.dto.AdvertisementDTO;
+import com.netcracker.dto.CustomPair;
+import com.netcracker.dto.MainPageParams;
+import com.netcracker.dto.UserDTO;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.Key;
@@ -62,6 +65,7 @@ public class AdvertisementsList extends VerticalLayout {
 
 
         advertisementButton.addThemeVariants(ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_PRIMARY);
+        advertisementButton.getStyle().set("cursor", "pointer");
 
         addAdvertisements.addDialogCloseActionListener(dialogCloseActionEvent -> {
             addAdvertisements.close();

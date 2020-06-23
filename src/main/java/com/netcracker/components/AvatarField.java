@@ -24,12 +24,7 @@ public class AvatarField extends CustomField<AdvertisementImage> {
     private Image currentAvatar;
     private Upload upload;
 
-    /*public AvatarField(String caption) {
-        this();
-        setLabel(caption);
-    }*/
     public AvatarField() {
-
         currentAvatar = new Image();
         currentAvatar.setAlt("avatar image");
         currentAvatar.setMaxHeight("100px");

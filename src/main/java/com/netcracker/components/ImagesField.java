@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-//TODO Check again
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ImagesField extends CustomField<AdvertisementImage> {
@@ -111,7 +111,6 @@ public class ImagesField extends CustomField<AdvertisementImage> {
         setInvalid(true);
         setErrorMessage(message);
     }
-
 }
 
 

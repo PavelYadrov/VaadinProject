@@ -1,9 +1,11 @@
 package com.netcracker.view;
 
 import com.netcracker.components.AppHeader;
+import com.netcracker.components.ChatEvent;
 import com.netcracker.components.MiniAdvertisement;
 import com.netcracker.dto.AdvertisementDTO;
 import com.netcracker.dto.CustomPair;
+import com.netcracker.dto.MessageDTO;
 import com.netcracker.dto.UserDTO;
 import com.netcracker.service.CategoryService;
 import com.netcracker.service.FeignUserService;
@@ -29,6 +31,7 @@ import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import reactor.core.publisher.UnicastProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +56,8 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
     private List<AdvertisementDTO> usersAdvertisements;
 
+    private UnicastProcessor<ChatEvent> publisher;
+
     private Image avatar = new Image();
     private Image miniAvatar = new Image();
     private Span person = new Span();
@@ -60,16 +65,20 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
     private Span username = new Span();
     private Span email = new Span();
     private Span registrationDate = new Span();
+    private Span adminContact = new Span();
     private VerticalLayout userInfo = new VerticalLayout();
     private VerticalLayout image = new VerticalLayout();
     private VerticalLayout advertisements = new VerticalLayout();
     private HorizontalLayout dialogInfo = new HorizontalLayout();
     private Dialog changePasswordWindow = new Dialog();
     private Dialog changeStatusWindow = new Dialog();
+    private Dialog adminDialog = new Dialog();
 
     private Button delete = new Button("Delete User");
     private Button changePassword = new Button("Change Password");
     private Button changeStatus = new Button("Change Status");
+    private Button sendAdminMessage = new Button("send");
+    private Button sendMessage = new Button("send");
 
     private Button submitPassword = new Button("Change Password");
     private Button submitStatus = new Button("Change Status");
@@ -79,9 +88,12 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
     private Registration submitPassListener;
     private Registration statusListener;
     private Registration submitStatusListener;
+    private Registration sendAdminListener;
+    private Registration sendMessageListener;
 
     private TextField password = new TextField("Password");
     private TextField status = new TextField("Status");
+    private TextField message = new TextField("Message");
 
     private List<String> statusList = new ArrayList<>();
 
@@ -91,7 +103,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
         this.userService = userService;
         this.feign = feignUserService;
-
+        this.publisher = userService.getPublisher();
 
         try {
             token = userService.getCookieByName("Authentication");
@@ -99,7 +111,6 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
         } catch (FeignException.Forbidden e) {
             UI.getCurrent().getPage().setLocation("login");
         }
-        //TODO implement convenient style
         if (user != null) {
             statusList.add("Banned");
             statusList.add("Frozen");
@@ -112,6 +123,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             username.addClassName("user");
             email.addClassName("user");
             registrationDate.addClassName("user");
+            adminContact.addClassName("user");
 
             userInfo.setMinWidth("600px");
             userInfo.setMinHeight("600px");
@@ -135,8 +147,14 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             submitStatus.getStyle().set("cursor", "pointer");
             submitStatus.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
+            sendAdminMessage.getStyle().set("position", "absolute");
+            sendAdminMessage.getStyle().set("margin-left", "3%");
+
             submitPassword.getStyle().set("cursor", "pointer");
             submitPassword.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            sendAdminMessage.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+            sendAdminMessage.getStyle().set("cursor", "pointer");
 
             advertisements.setMaxHeight("600px");
             advertisements.setMinWidth("400px");
@@ -175,6 +193,8 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
         if (statusListener != null) statusListener.remove();
         if (submitPassListener != null) submitPassListener.remove();
         if (submitStatusListener != null) submitStatusListener.remove();
+        if (sendAdminListener != null) sendAdminListener.remove();
+        if (sendMessageListener != null) sendMessageListener.remove();
 
         avatar.setSrc(imageRoute + owner.getAvatar());
         miniAvatar.setSrc(imageRoute + owner.getAvatar());
@@ -186,9 +206,33 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
         userInfo.add(person);
         userInfo.add(registrationDate);
+
+        Div admin = new Div();
+        adminContact.setText("Admin contact");
+        admin.add(adminContact, sendAdminMessage);
+        userInfo.add(admin);
+
         image.add(avatar);
 
         dialogInfo.add(miniAvatar, fullName);
+
+        if (user.getId().equals(owner.getId()) && !user.getId().equals(1L)) {
+            sendAdminListener = sendAdminMessage.addClickListener(buttonClickEvent -> {
+                adminDialog.add(message, sendMessage);
+                adminDialog.open();
+            });
+
+            sendMessageListener = sendMessage.addClickListener(buttonClickEvent -> {
+                if (!message.getValue().isEmpty()) {
+                    CustomPair pair = new CustomPair();
+                    pair.setFirstLine("1");
+                    pair.setSecondLine(message.getValue());
+                    MessageDTO mess = feign.receiveMessage(token, pair).getBody();
+
+                    publisher.onNext(new ChatEvent(mess));
+                }
+            });
+        }
 
         try {
             feign.roleCheck(token);

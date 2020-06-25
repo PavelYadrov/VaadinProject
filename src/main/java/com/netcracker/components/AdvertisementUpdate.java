@@ -78,7 +78,7 @@ public class AdvertisementUpdate extends VerticalLayout {
             advertisementDTO.setDescription(description.getValue());
             advertisementDTO.setPrice(Double.parseDouble(price.getValue()));
             if (admin) {
-                advertisementDTO.setUser_id(Long.parseLong(owner.getValue()));
+                advertisementDTO.setUser_id(advertisementDTO.getUser_id());
                 advertisementDTO.setCategory_id(Long.parseLong(category.getValue()));
                 feignUserService.adminUpdateAdvertisement(token, advertisementDTO);
                 dialog.close();
@@ -96,7 +96,7 @@ public class AdvertisementUpdate extends VerticalLayout {
 
         VerticalLayout head = new VerticalLayout(name, description, price);
         if (adminFlag) {
-            head.add(category, owner);
+            head.add(category);
         }
         head.setMaxWidth("800");
         head.setSizeFull();

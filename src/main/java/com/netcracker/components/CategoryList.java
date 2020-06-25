@@ -7,10 +7,16 @@ import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.accordion.AccordionPanel;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.DetailsVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.QueryParameters;
+import com.vaadin.flow.shared.Registration;
 import feign.FeignException;
 
 import java.util.ArrayList;
@@ -26,6 +32,13 @@ public class CategoryList extends FormLayout {
     private FeignUserService feign;
     private UserService userService;
     private AccordionPanel mainPanel;
+    private String token;
+    private String parentCategoryId;
+
+    private Dialog dialog = new Dialog();
+    private TextField category = new TextField("Add new category");
+    private Button add = new Button("add");
+    private Registration addListener;
 
     private Double counter = 7.0;
 
@@ -36,9 +49,11 @@ public class CategoryList extends FormLayout {
         this.userService = userService;
         if (user == null) return;
         try {
+            token = userService.getCookieByName("Authentication");
             mainPanel = new AccordionPanel();
             currentPanel = mainPanel;
             Span acctext = new Span("All");
+            acctext.setId("1");
 
             this.setSpanListener(acctext, "1", 0.0);
             mainPanel.setSummary(acctext);
@@ -51,47 +66,62 @@ public class CategoryList extends FormLayout {
                     if (mainPanel.getContent().count() > 0L) return;
                     this.initAccordions("1", list).forEach(mainPanel::addContent);
                 }
-                        });
-                        add(mainPanel);
-                } catch (FeignException.Forbidden | FeignException.BadRequest e) {
-                        UI.getCurrent().getPage().setLocation("login");
-                }
+            });
+
+            add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+            add(mainPanel);
+        } catch (FeignException.Forbidden | FeignException.BadRequest e) {
+            UI.getCurrent().getPage().setLocation("login");
         }
-
+    }
         private List<AccordionPanel> initAccordions(String id, List<Long> list) {
-                List<CategoryDTO> categoryDTOS = feign.getFirstLayerCategories(userService.getCookieByName("Authentication"), id).getBody();
+            List<CategoryDTO> categoryDTOS = feign.getFirstLayerCategories(userService.getCookieByName("Authentication"), id).getBody();
 
-                List<Span> spans = categoryDTOS.stream().filter(categoryDTO -> !categoryDTO.getHasChilds())
-                        .map(categoryDTO -> {
-                                Span innerText = new Span(categoryDTO.getName());
-                                innerText.setId(categoryDTO.getId().toString());
-                                return innerText;
-                        }).collect(Collectors.toList());
-                if (!spans.isEmpty()) spans.forEach(span -> {
+            List<Span> spans = categoryDTOS.stream().filter(categoryDTO -> !categoryDTO.getHasChilds())
+                    .map(categoryDTO -> {
+                        Span innerText = new Span(categoryDTO.getName());
+                        innerText.setId(categoryDTO.getId().toString());
+                        return innerText;
+                    }).collect(Collectors.toList());
+            Div allSpans = new Div();
+            allSpans.getStyle().set("display", "grid");
+            if (!spans.isEmpty()) {
+                spans.forEach(span -> {
                     this.setSpanListener(span, span.getId().get(), counter);
-                    currentPanel.addContent(span);
+                    allSpans.add(span);
                 });
-                List<AccordionPanel> accordions = categoryDTOS.stream().filter(CategoryDTO::getHasChilds).map(categoryDTO -> {
+                currentPanel.addContent(allSpans);
+
+
+            }
+            List<AccordionPanel> accordions = categoryDTOS.stream()
+                    .filter(CategoryDTO::getHasChilds)
+                    .filter(categoryDTO -> categoryDTO.getParent_id().equals(Long.parseLong(id)))
+                    .map(categoryDTO -> {
                         AccordionPanel accordion = new AccordionPanel();
-                        currentPanel = accordion;
+
                         accordion.setId(categoryDTO.getId().toString());
                         accordion.addThemeVariants(DetailsVariant.FILLED);
                         Span acctext = new Span(categoryDTO.getName());
-                    this.setSpanListener(acctext, accordion.getId().get(), 0.0);
+                        this.setSpanListener(acctext, accordion.getId().get(), 0.0);
                         Long currId = Long.parseLong(accordion.getId().get());
                         if (list != null && list.contains(currId)) {
-                                accordion.setOpened(true);
-                                list.remove(currId);
+                            accordion.setOpened(true);
+                            list.remove(currId);
                         }
                         accordion.setSummary(acctext);
+                        accordion.getElement().getStyle().set("display", "grid");
+
                         accordion.addOpenedChangeListener(openedChangeEvent -> {
-                                if (openedChangeEvent.isOpened()) {
-                                        if (accordion.getContent().count() > 0L) return;
-                                    List<AccordionPanel> accordionPanels = initAccordions(accordion.getId().get(), list);
-                                    accordionPanels.forEach(accordion::addContent);
-                                }
+                            if (openedChangeEvent.isOpened()) {
+                                currentPanel = accordion;
+                                if (accordion.getContent().count() > 0L) return;
+                                List<AccordionPanel> accordionPanels = initAccordions(accordion.getId().get(), list);
+                                accordionPanels.forEach(accordion::addContent);
+                            }
                         });
-                    return accordion;
+                        return accordion;
                 }).collect(Collectors.toList());
             return accordions;
         }
@@ -101,6 +131,21 @@ public class CategoryList extends FormLayout {
         span.getStyle().set("font-weight", "bold");
         span.getStyle().set("padding-left", indent + "%");
         span.getStyle().set("color", "#696969");
+        span.getElement().addEventListener("contextmenu", domEvent -> {
+            parentCategoryId = domEvent.getSource().getComponent().get().getId().get();
+            dialog.add(category, add);
+            dialog.open();
+        });
+        if (addListener != null) addListener.remove();
+        addListener = add.addClickListener(buttonClickEvent -> {
+            CategoryDTO categoryDTO = new CategoryDTO();
+            categoryDTO.setParent_id(Long.parseLong(parentCategoryId));
+            categoryDTO.setDescription("think about it");
+            categoryDTO.setName(category.getValue());
+            feign.addCategory(token, categoryDTO);
+            dialog.close();
+            dialog.removeAll();
+        });
         span.addClickListener(spanClickEvent -> {
             List<String> param1 = new ArrayList<>();
             Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();

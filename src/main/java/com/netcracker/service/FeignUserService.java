@@ -49,6 +49,9 @@ public interface FeignUserService {
     @PostMapping(value = "api/admin/addCategory")
     ResponseEntity<String> addCategory(@RequestHeader(name = "Authentication") String token, @RequestBody CategoryDTO categoryDTO);
 
+    @DeleteMapping(value = "api/admin/deleteCategory")
+    ResponseEntity<String> deleteCategory(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
+
     @DeleteMapping(value = "api/user/deleteAdvertisement")
     ResponseEntity<List<Long>> deleteAdvertisement(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
 

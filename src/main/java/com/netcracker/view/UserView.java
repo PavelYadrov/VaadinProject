@@ -148,13 +148,15 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             submitStatus.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
             sendAdminMessage.getStyle().set("position", "absolute");
-            sendAdminMessage.getStyle().set("margin-left", "3%");
+            sendAdminMessage.getStyle().set("margin-left", "1%");
 
             submitPassword.getStyle().set("cursor", "pointer");
             submitPassword.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
             sendAdminMessage.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
             sendAdminMessage.getStyle().set("cursor", "pointer");
+
+            sendMessage.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
             advertisements.setMaxHeight("600px");
             advertisements.setMinWidth("400px");
@@ -208,16 +210,28 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
         userInfo.add(registrationDate);
 
         Div admin = new Div();
+        UserDTO adminDTO = feign.getUserById(token, "1").getBody();
+        Span adminName = new Span();
+        adminName.setText(adminDTO.getFirstName() + " " + adminDTO.getLastName());
+        adminName.addClassName("user");
+        Image adminAvatar = new Image();
+        adminAvatar.setWidth("50px");
+        adminAvatar.setHeight("50px");
+        adminAvatar.addClassName("mini-avatar");
+        adminAvatar.setSrc(imageRoute + adminDTO.getAvatar());
         adminContact.setText("Admin contact");
         admin.add(adminContact, sendAdminMessage);
-        userInfo.add(admin);
+        HorizontalLayout adminLayout = new HorizontalLayout();
+        adminLayout.add(adminAvatar, adminName);
 
         image.add(avatar);
 
         dialogInfo.add(miniAvatar, fullName);
 
         if (user.getId().equals(owner.getId()) && !user.getId().equals(1L)) {
+            userInfo.add(admin);
             sendAdminListener = sendAdminMessage.addClickListener(buttonClickEvent -> {
+                adminDialog.add(adminLayout);
                 adminDialog.add(message, sendMessage);
                 adminDialog.open();
             });
@@ -230,6 +244,9 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
                     MessageDTO mess = feign.receiveMessage(token, pair).getBody();
 
                     publisher.onNext(new ChatEvent(mess));
+
+                    adminDialog.close();
+                    adminDialog.removeAll();
                 }
             });
         }

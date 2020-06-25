@@ -36,9 +36,11 @@ public class CategoryList extends FormLayout {
     private String parentCategoryId;
 
     private Dialog dialog = new Dialog();
-    private TextField category = new TextField("Add new category");
+    private TextField category = new TextField("Add or delete category");
     private Button add = new Button("add");
+    private Button delete = new Button("delete");
     private Registration addListener;
+    private Registration deleteListener;
 
     private Double counter = 7.0;
 
@@ -60,6 +62,8 @@ public class CategoryList extends FormLayout {
 
             mainPanel.setId("1");
             mainPanel.addThemeVariants(DetailsVariant.FILLED);
+
+            delete.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
 
             mainPanel.addOpenedChangeListener(openedChangeEvent -> {
                 if (openedChangeEvent.isOpened()) {
@@ -131,11 +135,7 @@ public class CategoryList extends FormLayout {
         span.getStyle().set("font-weight", "bold");
         span.getStyle().set("padding-left", indent + "%");
         span.getStyle().set("color", "#696969");
-        span.getElement().addEventListener("contextmenu", domEvent -> {
-            parentCategoryId = domEvent.getSource().getComponent().get().getId().get();
-            dialog.add(category, add);
-            dialog.open();
-        });
+        span.setId(id);
         if (addListener != null) addListener.remove();
         addListener = add.addClickListener(buttonClickEvent -> {
             CategoryDTO categoryDTO = new CategoryDTO();
@@ -146,7 +146,25 @@ public class CategoryList extends FormLayout {
             dialog.close();
             dialog.removeAll();
         });
+        if (deleteListener != null) deleteListener.remove();
+
+        deleteListener = delete.addClickListener(buttonClickEvent -> {
+            feign.deleteCategory(token, id);
+            dialog.close();
+            dialog.removeAll();
+        });
+
         span.addClickListener(spanClickEvent -> {
+            try {
+                feign.roleCheck(token);
+                if (spanClickEvent.isCtrlKey()) {
+                    parentCategoryId = id;
+                    dialog.add(category, add, delete);
+                    dialog.open();
+                }
+            } catch (FeignException.Forbidden e) {
+            }
+
             List<String> param1 = new ArrayList<>();
             Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();
             param1.add(id);

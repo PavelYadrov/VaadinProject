@@ -122,11 +122,6 @@ public class AdvertisementsList extends VerticalLayout {
         miniAdvertisementFields = this.advertisements.stream().map(MiniAdvertisement::new)
                 .collect(Collectors.toList());
 
-        if (miniAdvertisementFields.isEmpty()) {
-            UI.getCurrent().getPage().setLocation("mainPage");
-            return;
-        }
-
         Div wrapper = new Div();
         wrapper.add(search, advertisementButton, searchButton);
         wrapper.addClassName("advertisements-head");

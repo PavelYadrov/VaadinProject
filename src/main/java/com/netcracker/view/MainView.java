@@ -76,6 +76,8 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             add(new AppHeader(false, true, true, user, feign, userService));
             add(content);
             addClassName("main-view");
+        } else {
+            UI.getCurrent().getPage().setLocation("login");
         }
     }
 

@@ -66,7 +66,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
 
     private Span title = new Span();
     private Span price = new Span();
-    private Span description = new Span();
+    private Div description = new Div();
     private Span person = new Span();
     private Span fullName = new Span();
     private Span name = new Span();
@@ -168,7 +168,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private void loadAdvertisement(AdvertisementDTO advertisementDTO) {
         this.removeAll();
 
-        add(new AppHeader(true, true, true, user, feign, userService));
+        add(new AppHeader(true, true, true, user, feign, userService, this));
         Div content = new Div(images, info);
         content.addClassName("content-adv");
         add(content);

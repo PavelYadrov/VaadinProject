@@ -44,8 +44,8 @@ public class MiniAdvertisement extends HorizontalLayout {
         name = new Span(advertisement.getName());
         name.addClassName("name");
 
-        if (advertisement.getDescription().length() >= 60) {
-            description = new Span(advertisement.getDescription().substring(0, 60) + "...");
+        if (advertisement.getDescription().length() >= 50) {
+            description = new Span(advertisement.getDescription().substring(0, 50) + "...");
         } else description = new Span(advertisement.getDescription());
         description.addClassName("description");
 

@@ -18,14 +18,14 @@
 
 .price-adv {
     float: right;
-    font-size: 30px;
+    font-size: 27px;
     font-weight: bold;
     color: #00a80d;
 }
 
 .title-adv {
     float: left;
-    font-size: 30px;
+    font-size: 27px;
     font-weight: bold;
     color: black;
 }
@@ -34,6 +34,7 @@
     font-size: 20px;
     font-weight: 500;
     text-align: left;
+    line-break: anywhere;
 }
 
 .full-name {

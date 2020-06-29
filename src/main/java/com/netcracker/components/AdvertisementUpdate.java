@@ -107,20 +107,25 @@ public class AdvertisementUpdate extends VerticalLayout {
 
         add(wrapper);
 
-        binder.forField(name).withValidator(this::validateText).asRequired().bind("name");
+        binder.forField(name).withValidator(this::validateTitle).asRequired().bind("name");
         binder.forField(description).withValidator(this::validateText).asRequired().bind("description");
         binder.forField(price).withValidator(this::validatePrice).asRequired().bind("price");
 
     }
 
     private ValidationResult validateText(String text, ValueContext ctx) {
-
-        String errorMsg = userService.validateText(text);
-
+        String errorMsg = userService.validateText(text, false);
         if (errorMsg == null) {
             return ValidationResult.ok();
         }
+        return ValidationResult.error(errorMsg);
+    }
 
+    private ValidationResult validateTitle(String text, ValueContext ctx) {
+        String errorMsg = userService.validateText(text, true);
+        if (errorMsg == null) {
+            return ValidationResult.ok();
+        }
         return ValidationResult.error(errorMsg);
     }
 

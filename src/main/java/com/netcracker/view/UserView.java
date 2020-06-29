@@ -20,6 +20,7 @@ import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.BeforeEvent;
@@ -38,6 +39,7 @@ import java.util.List;
 
 @Route("user")
 @CssImport("./styles/user-page.css")
+@Push
 public class UserView extends VerticalLayout implements HasUrlParameter<String> {
 
     private String token;
@@ -188,7 +190,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
     private void loadUserPage() {
         this.removeAll();
-        add(new AppHeader(true, true, false, user, feign, userService));
+        add(new AppHeader(true, true, false, user, feign, userService, this));
 
         if (deleteListener != null) deleteListener.remove();
         if (passListener != null) passListener.remove();

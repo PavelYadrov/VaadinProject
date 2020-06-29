@@ -41,6 +41,7 @@ public class CategoryList extends FormLayout {
     private Button delete = new Button("delete");
     private Registration addListener;
     private Registration deleteListener;
+    private String qp;
 
     private Double counter = 7.0;
 
@@ -96,8 +97,6 @@ public class CategoryList extends FormLayout {
                     allSpans.add(span);
                 });
                 currentPanel.addContent(allSpans);
-
-
             }
             List<AccordionPanel> accordions = categoryDTOS.stream()
                     .filter(CategoryDTO::getHasChilds)
@@ -145,6 +144,7 @@ public class CategoryList extends FormLayout {
             feign.addCategory(token, categoryDTO);
             dialog.close();
             dialog.removeAll();
+            UI.getCurrent().getPage().reload();
         });
         if (deleteListener != null) deleteListener.remove();
 
@@ -152,6 +152,7 @@ public class CategoryList extends FormLayout {
             feign.deleteCategory(token, id);
             dialog.close();
             dialog.removeAll();
+            UI.getCurrent().getPage().reload();
         });
 
         span.addClickListener(spanClickEvent -> {

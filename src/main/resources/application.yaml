@@ -2,7 +2,6 @@ spring:
   application:
     name: client
 
-
 server:
   port: 8085
   servlet:
@@ -15,3 +14,5 @@ eureka:
     fetchRegistry: true
     serviceUrl:
       defaultZone: http://user:WannaBeIn3ureka@localhost:8761/eureka/
+vaadin:
+  async-supported: true

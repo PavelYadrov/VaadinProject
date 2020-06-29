@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 public class AdvertisementsList extends VerticalLayout {
 
     private String token;
+    private String pageParam;
 
     private TextField search = new TextField();
     private Button searchButton = new Button("Search");
@@ -43,6 +44,8 @@ public class AdvertisementsList extends VerticalLayout {
     private Registration prevPageListener;
     private Span info = new Span();
     private Div pageInfo = new Div();
+    private Div wrapper = new Div();
+    private Div mess = new Div();
     private HorizontalLayout bottom = new HorizontalLayout();
 
     private List<AdvertisementDTO> advertisements;
@@ -82,11 +85,12 @@ public class AdvertisementsList extends VerticalLayout {
         loadAdvertisements(qp, searchParam, pageParam);
     }
 
-    public void loadAdvertisements(String qp, String searchParam, String pageParam) {
+    public void loadAdvertisements(String qp, String searchParam, String page) {
         if (searchListener != null) searchListener.remove();
         if (nextPageListener != null) nextPageListener.remove();
         if (prevPageListener != null) prevPageListener.remove();
         if (advButtonListener != null) advButtonListener.remove();
+        this.pageParam = page;
 
         this.removeAll();
         if (StringUtils.isEmpty(qp)) return;
@@ -109,8 +113,7 @@ public class AdvertisementsList extends VerticalLayout {
         searchButton.addClassName("search-button");
         searchButton.addClickShortcut(Key.ENTER);
 
-        searchListener = searchButton.addClickListener(buttonClickEvent -> this.setParams(qp, pageParam, 0L));
-
+        searchListener = searchButton.addClickListener(buttonClickEvent -> this.setParams(qp, "1", 0L));
         if (searchParam == null || searchParam.isEmpty()) {
             CustomPair pair = new CustomPair();
             pair.setFirstLine(qp);
@@ -122,11 +125,17 @@ public class AdvertisementsList extends VerticalLayout {
         miniAdvertisementFields = this.advertisements.stream().map(MiniAdvertisement::new)
                 .collect(Collectors.toList());
 
-        Div wrapper = new Div();
+        if (miniAdvertisementFields.isEmpty() && !pageParam.equals("1")) {
+            setParams(qp, "1", 0L);
+            loadAdvertisements(qp, searchParam, "1");
+        }
+
         wrapper.add(search, advertisementButton, searchButton);
         wrapper.addClassName("advertisements-head");
         wrapper.setSizeFull();
+        wrapper.setHeight("100px");
         add(wrapper, addAdvertisements);
+
         miniAdvertisementFields.forEach(this::add);
 
         nextPage.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -140,21 +149,32 @@ public class AdvertisementsList extends VerticalLayout {
             this.setParams(qp, pageParam, -1L);
         });
 
-        Long maxAdv = Long.parseLong(pageParam) * 10 - 10 + miniAdvertisementFields.size();
+        Long maxAdv = Long.parseLong(pageParam) * 6 - 6 + miniAdvertisementFields.size();
         Long minAdv;
         if (miniAdvertisementFields.isEmpty()) minAdv = 0L;
-        else minAdv = Long.parseLong(pageParam) * 10 - 9;
+        else minAdv = Long.parseLong(pageParam) * 6 - 5;
 
-        pageInfo.setText("Page: " + pageParam + " / Advertisements: " + minAdv + "-" + maxAdv + " of " + feignUserService.getCount(token, params).getBody());
+        Integer all = feignUserService.getCount(token, params).getBody();
+
+        pageInfo.setText("Page: " + pageParam + " / Advertisements: " + minAdv + "-" + maxAdv + " of " + all);
         pageInfo.setSizeFull();
-        bottom.add(prevPage, pageInfo, nextPage);
+        if (miniAdvertisementFields.isEmpty()) {
+            mess.setText("This category dont have any advertisements yet");
+            mess.addClassName("page-info-not");
+            bottom.removeAll();
+            bottom.add(mess);
+        } else {
+            bottom.removeAll();
+            bottom.add(prevPage, pageInfo, nextPage);
+        }
         add(bottom);
 
         if (pageParam.equals("1")) prevPage.onEnabledStateChanged(false);
         else prevPage.onEnabledStateChanged(true);
 
-        if (miniAdvertisementFields.size() < 10) nextPage.onEnabledStateChanged(false);
-        else nextPage.onEnabledStateChanged(true);
+        if ((Long.parseLong(pageParam) - 1) * 6 + miniAdvertisementFields.size() < all)
+            nextPage.onEnabledStateChanged(true);
+        else nextPage.onEnabledStateChanged(false);
     }
 
     private void setParams(String qp, String page, Long shift) {
@@ -166,7 +186,7 @@ public class AdvertisementsList extends VerticalLayout {
         param1.add(search.getValue());
         param2.add(qp);
         if (shift > 0) {
-            if (miniAdvertisementFields.isEmpty() || miniAdvertisementFields.size() < 10) {
+            if (miniAdvertisementFields.isEmpty() || miniAdvertisementFields.size() < 6) {
                 param3.add(page);
             } else param3.add(shiftedParam.toString());
         }

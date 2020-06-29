@@ -9,11 +9,15 @@ import com.netcracker.dto.RoomDTO;
 import com.netcracker.dto.UserDTO;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.router.BeforeLeaveEvent;
+import com.vaadin.flow.router.BeforeLeaveObserver;
 import com.vaadin.flow.router.Route;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +30,9 @@ import java.util.stream.Collectors;
 @Push
 @Route("chat")
 @CssImport("./styles/chat-view.css")
-public class ChatView extends VerticalLayout {
+public class ChatView extends VerticalLayout implements BeforeLeaveObserver {
+
+    private FeederThread thread;
 
     private final UnicastProcessor<ChatEvent> publisher;
     private final Flux<ChatEvent> messages;
@@ -45,7 +51,6 @@ public class ChatView extends VerticalLayout {
     private List<MiniChat> miniRooms;
     private List<Long> roomIds;
     private MiniChat uploadChat;
-
     private VerticalLayout dialogs = new VerticalLayout();
 
     private Chat chat;
@@ -54,6 +59,7 @@ public class ChatView extends VerticalLayout {
 
     public ChatView(@Autowired FeignUserService feignUserService, @Autowired UserService userService,
                     UnicastProcessor<ChatEvent> publisher, Flux<ChatEvent> messages) {
+
         this.userService = userService;
         this.feign = feignUserService;
         this.publisher = publisher;
@@ -86,6 +92,8 @@ public class ChatView extends VerticalLayout {
 
     private void loadChats() {
         this.removeAll();
+        uploadChatId = 0L;
+
         miniRooms = rooms.stream().map(roomDTO -> {
             MiniChat miniChat = setMiniChat(roomDTO);
             dialogs.add(miniChat);
@@ -93,7 +101,7 @@ public class ChatView extends VerticalLayout {
         }).collect(Collectors.toList());
 
         if (!miniRooms.isEmpty()) {
-            this.chat = new Chat(feign, user, publisher, messages);
+            this.chat = new Chat(feign, user, publisher, userService);
             chat.loadChat(null, token);
             chat.addClassName("chat-main");
             chat.setMaxWidth("900px");
@@ -103,42 +111,7 @@ public class ChatView extends VerticalLayout {
                     .map(MiniChat::getRoomId)
                     .collect(Collectors.toList());
 
-            messages.subscribe(message -> {
-                if (user.getId().equals(message.getMessage().getReceiverId())) {
-                    getUI().ifPresent(ui ->
-                            ui.access(() -> {
-                                if (message.getMessage().getRoomId().equals(uploadChatId)) {
-                                    chat.newMessage(message.getMessage());
-                                    uploadChat = miniRooms.stream()
-                                            .filter(miniChat -> miniChat.getRoomId().equals(message.getMessage().getRoomId()))
-                                            .collect(Collectors.toList()).get(0);
-                                    uploadChat.setNewInfo(message.getMessage());
-                                } else {
-                                    if (roomIds.contains(message.getMessage().getRoomId())) {
-                                        uploadChat = miniRooms.stream()
-                                                .filter(miniChat -> miniChat.getRoomId().equals(message.getMessage().getRoomId()))
-                                                .collect(Collectors.toList()).get(0);
-                                        uploadChat.addIcon();
-                                        uploadChat.setNewInfo(message.getMessage());
-                                        dialogs.remove(uploadChat);
-                                        dialogs.addComponentAsFirst(uploadChat);
-                                    } else {
-                                        RoomDTO roomDTO = feign.getRoomById(token, message.getMessage().getRoomId().toString())
-                                                .getBody();
-                                        if (roomDTO != null) {
-                                            MiniChat miniChat = setMiniChat(roomDTO);
-                                            miniChat.addIcon();
-                                            miniRooms.add(miniChat);
-                                            roomIds.add(roomDTO.getId());
-                                            dialogs.addComponentAsFirst(miniChat);
-                                        }
-                                    }
-                                }
-                            }));
-                }
-            });
-
-            add(new AppHeader(true, false, true, user, feign, userService));
+            add(new AppHeader(true, false, true, user, feign, userService, this));
             Div content = new Div(dialogs, chat);
             content.addClassName("content-chat");
             add(content);
@@ -155,5 +128,84 @@ public class ChatView extends VerticalLayout {
             uploadChatId = roomDTO.getId();
         });
         return miniChat;
+    }
+
+    @Override
+    public void beforeLeave(BeforeLeaveEvent beforeLeaveEvent) {
+        uploadChatId = 0L;
+    }
+
+    private class FeederThread extends Thread {
+        private final UI ui;
+        private final VerticalLayout view;
+
+        public FeederThread(UI ui, VerticalLayout view) {
+            this.ui = ui;
+            this.view = view;
+        }
+
+        @Override
+        public void run() {
+            subscribe(ui);
+        }
+
+        private void subscribe(UI ui) {
+            messages.subscribe(message -> {
+                if (user.getId().equals(message.getMessage().getReceiverId())) {
+                    try {
+                        ui.access(() -> {
+                            if (message.getMessage().getRoomId().equals(uploadChatId)) {
+                                chat.newMessage(message.getMessage());
+                                uploadChat = miniRooms.stream()
+                                        .filter(miniChat -> miniChat.getRoomId().equals(message.getMessage().getRoomId()))
+                                        .collect(Collectors.toList()).get(0);
+                                feign.setMessageRead(token, message.getMessage().getId().toString());
+
+                                uploadChat.setNewInfo(message.getMessage());
+                            } else {
+                                if (roomIds.contains(message.getMessage().getRoomId())) {
+                                    uploadChat = miniRooms.stream()
+                                            .filter(miniChat -> miniChat.getRoomId().equals(message.getMessage().getRoomId()))
+                                            .collect(Collectors.toList()).get(0);
+                                    uploadChat.addIcon();
+                                    uploadChat.setNewInfo(message.getMessage());
+                                    dialogs.remove(uploadChat);
+                                    dialogs.addComponentAsFirst(uploadChat);
+                                } else {
+                                    RoomDTO roomDTO = feign.getRoomById(token, message.getMessage().getRoomId().toString())
+                                            .getBody();
+                                    if (roomDTO != null) {
+                                        MiniChat miniChat = setMiniChat(roomDTO);
+                                        miniChat.addIcon();
+                                        miniRooms.add(miniChat);
+                                        roomIds.add(roomDTO.getId());
+                                        dialogs.addComponentAsFirst(miniChat);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        Thread thread = Thread.currentThread();
+                        thread.interrupt();
+                        e.printStackTrace();
+                    }
+
+                }
+            });
+        }
+
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        thread = new FeederThread(attachEvent.getUI(), this);
+        thread.start();
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        thread.interrupt();
+        thread = null;
     }
 }

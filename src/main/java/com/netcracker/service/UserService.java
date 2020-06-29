@@ -8,14 +8,13 @@ import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.VaadinService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.UnicastProcessor;
 
 import javax.servlet.http.Cookie;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,11 +76,14 @@ public class UserService implements Serializable {
         return null;
     }
 
-    public String validateText(String text){
-        if (text == null) {
+    public String validateText(String text, Boolean title) {
+        if (text == null || StringUtils.isEmpty(text)) {
             return "Can't be empty";
         }
         if (text.trim().length() < 5) return "Can't be less than 5 symbols";
+        if (title) {
+            if (text.trim().length() > 19) return "Can't be large than 19 symbols";
+        }
         Pattern namePattern = Pattern.compile("^[A-Za-zа-яА-Я-0-9 !():,.'-]+$");
         Matcher matcher = namePattern.matcher(text);
         if (!matcher.matches()) return "Invalid symbols";
@@ -98,8 +100,8 @@ public class UserService implements Serializable {
         Pattern namePattern = Pattern.compile("^(\\d+\\.\\d+)$|^(\\d+)$");
         Matcher matcher = namePattern.matcher(price);
         if (!matcher.matches()) return "Invalid number";
-        if (price.length() > 30) {
-            return "price must be less than 30 symbols ";
+        if (price.length() > 10) {
+            return "price must be less than 10 symbols ";
         }
         return null;
     }
@@ -120,6 +122,17 @@ public class UserService implements Serializable {
             UI.getCurrent().getPage().setLocation("mainPage");
             return null;
         } else return params.get(0);
+    }
+
+    public void setParam(String page, String param) {
+        List<String> param1 = new ArrayList<>();
+        Map<String, List<String>> parametersMap = new HashMap<String, List<String>>();
+        param1.add(param);
+
+        parametersMap.put("id", param1);
+
+        QueryParameters qp = new QueryParameters(parametersMap);
+        UI.getCurrent().navigate(page, qp);
     }
 
     public Flux<ChatEvent> getMessages() {

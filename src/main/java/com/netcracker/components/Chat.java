@@ -5,6 +5,7 @@ import com.netcracker.dto.MessageDTO;
 import com.netcracker.dto.RoomDTO;
 import com.netcracker.dto.UserDTO;
 import com.netcracker.service.FeignUserService;
+import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -16,8 +17,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.shared.Registration;
-import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.UnicastProcessor;
 
 import java.util.List;
@@ -28,8 +27,8 @@ public class Chat extends VerticalLayout {
     private String nativeJSScroll = "document.querySelector(\".message-window\").scrollTo(0,document.querySelector(\".message-window\").scrollHeight)";
 
     private final UnicastProcessor<ChatEvent> publisher;
-    private final Flux<ChatEvent> messagesFlux;
-
+    private UserService userService;
+    private FeignUserService feign;
     private UserDTO user;
 
     private RoomDTO room;
@@ -46,17 +45,16 @@ public class Chat extends VerticalLayout {
     private TextField message = new TextField();
     private Button sendMessage = new Button("send");
     private Registration messageListener;
+    private Registration usernameListener;
 
     private List<MessageDTO> messages;
 
-    private FeignUserService feign;
-
-    public Chat(@Autowired FeignUserService feignUserService, UserDTO userDTO, UnicastProcessor<ChatEvent> publisher,
-                Flux<ChatEvent> messages) {
+    public Chat(FeignUserService feignUserService, UserDTO userDTO,
+                UnicastProcessor<ChatEvent> publisher, UserService userService) {
         this.feign = feignUserService;
         this.user = userDTO;
         this.publisher = publisher;
-        this.messagesFlux = messages;
+        this.userService = userService;
 
         addClassName("chat-main");
         setSizeFull();
@@ -84,12 +82,17 @@ public class Chat extends VerticalLayout {
         this.removeAll();
         messagesWindow.removeAll();
         if (messageListener != null) messageListener.remove();
+        if (usernameListener != null) usernameListener.remove();
 
         if (roomDTO != null) {
             sendMessage.onEnabledStateChanged(true);
             this.room = roomDTO;
             userAvatar.setSrc(imageRoute + roomDTO.getUrl());
             username.setText(room.getFirstName() + " " + room.getLastName());
+            usernameListener = username.addClickListener(spanClickEvent -> {
+                userService.setParam("user", roomDTO.getUserId().toString());
+            });
+            username.getStyle().set("cursor", "pointer");
             this.messages = feign.getRoomMessages(token, room.getId().toString()).getBody();
             messageListener = sendMessage.addClickListener(buttonClickEvent -> {
                 if (!message.getValue().isEmpty()) {
@@ -98,6 +101,7 @@ public class Chat extends VerticalLayout {
                     pair.setSecondLine(message.getValue());
                     MessageDTO mess = feign.receiveMessage(token, pair).getBody();
                     newMessage(mess);
+                    message.clear();
 
                     publisher.onNext(new ChatEvent(mess));
                 }

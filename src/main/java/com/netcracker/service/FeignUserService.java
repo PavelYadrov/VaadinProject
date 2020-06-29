@@ -106,4 +106,7 @@ public interface FeignUserService {
     @PostMapping(value = "api/user/getRoomById")
     ResponseEntity<RoomDTO> getRoomById(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
 
+    @PostMapping(value = "api/user/setRead")
+    ResponseEntity<String> setMessageRead(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
+
 }

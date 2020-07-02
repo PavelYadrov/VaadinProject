@@ -1,6 +1,7 @@
 package com.netcracker.components;
 
 import com.netcracker.dto.AdvertisementDTO;
+import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -11,6 +12,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.QueryParameters;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.SystemUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,8 +34,12 @@ public class MiniAdvertisement extends HorizontalLayout {
 
     private Span thirdLine = new Span();
 
-    public MiniAdvertisement(AdvertisementDTO advertisement, UserService userService) {
-        imageRoute = userService.serviceUrl() + "images/";
+    public MiniAdvertisement(AdvertisementDTO advertisement, UserService userService, FeignUserService feign, String token) {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            imageRoute = userService.serviceUrl() + "images/";
+        } else {
+            imageRoute = feign.getImageUrl(token).getBody();
+        }
         if (advertisement.getUrls().isEmpty()) {
             currentImage = new Image(imageRoute + "no-image.png", "faceImage");
         } else {

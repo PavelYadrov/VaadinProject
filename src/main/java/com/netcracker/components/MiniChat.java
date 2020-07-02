@@ -2,6 +2,7 @@ package com.netcracker.components;
 
 import com.netcracker.dto.MessageDTO;
 import com.netcracker.dto.RoomDTO;
+import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Image;
@@ -12,6 +13,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.SystemUtils;
 
 import java.util.Date;
 
@@ -35,7 +37,7 @@ public class MiniChat extends HorizontalLayout {
 
     private RoomDTO room;
 
-    public MiniChat(RoomDTO roomDTO, UserService userService) {
+    public MiniChat(RoomDTO roomDTO, UserService userService, FeignUserService feign, String token) {
         addClassName("mini-chat");
 
         this.room = roomDTO;
@@ -51,7 +53,11 @@ public class MiniChat extends HorizontalLayout {
         lastUpdate.addClassName("last-update");
         lastMessage.addClassName("last-message");
 
-        imageRoute = userService.serviceUrl() + "images/";
+        if (SystemUtils.IS_OS_WINDOWS) {
+            imageRoute = userService.serviceUrl() + "images/";
+        } else {
+            imageRoute = feign.getImageUrl(token).getBody();
+        }
 
         firstLine.add(username);
         secondLine.add(lastMessage, lastUpdate);

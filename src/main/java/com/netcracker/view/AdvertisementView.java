@@ -24,6 +24,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.shared.Registration;
 import feign.FeignException;
+import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -144,7 +145,11 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
                 changeAdvertisement.removeAll();
             });
 
-            imageRoute = userService.serviceUrl() + "images/";
+            if (SystemUtils.IS_OS_WINDOWS) {
+                imageRoute = userService.serviceUrl() + "images/";
+            } else {
+                imageRoute = feign.getImageUrl(token).getBody();
+            }
         }
     }
 

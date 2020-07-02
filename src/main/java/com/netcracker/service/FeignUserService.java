@@ -112,4 +112,7 @@ public interface FeignUserService {
     @PostMapping(value = "api/admin/getAllUsers")
     ResponseEntity<List<UserDTO>> getAllUsers(@RequestHeader(name = "Authentication") String token, @RequestBody(required = false) String username);
 
+    @GetMapping(value = "api/images/getImageUrl")
+    ResponseEntity<String> getImageUrl(@RequestHeader(name = "Authentication") String token);
+
 }

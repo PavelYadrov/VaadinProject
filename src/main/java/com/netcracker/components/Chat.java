@@ -33,7 +33,7 @@ public class Chat extends VerticalLayout {
 
     private RoomDTO room;
 
-    private String imageRoute = "http://localhost:8090/images/";
+    private String imageRoute;
 
     private HorizontalLayout head = new HorizontalLayout();
     private Image userAvatar = new Image();
@@ -76,6 +76,7 @@ public class Chat extends VerticalLayout {
         messagesWindow.addClassName("message-window");
 
 
+
     }
 
     public void loadChat(RoomDTO roomDTO, String token) {
@@ -83,6 +84,7 @@ public class Chat extends VerticalLayout {
         messagesWindow.removeAll();
         if (messageListener != null) messageListener.remove();
         if (usernameListener != null) usernameListener.remove();
+        imageRoute = userService.serviceUrl() + "images/";
 
         if (roomDTO != null) {
             sendMessage.onEnabledStateChanged(true);

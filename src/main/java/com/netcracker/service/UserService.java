@@ -1,13 +1,15 @@
 package com.netcracker.service;
 
 import com.netcracker.components.ChatEvent;
-import com.netcracker.dto.UserDTO;
+import com.netflix.appinfo.InstanceInfo;
+import com.netflix.discovery.EurekaClient;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.server.VaadinService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
@@ -18,7 +20,6 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class UserService implements Serializable {
@@ -28,6 +29,10 @@ public class UserService implements Serializable {
 
     @Autowired
     private UnicastProcessor<ChatEvent> publisher;
+
+    @Qualifier("eurekaClient")
+    @Autowired
+    private EurekaClient discoveryClient;
 
     public String isValid(String name) {
         if (name == null) {
@@ -137,17 +142,16 @@ public class UserService implements Serializable {
         UI.getCurrent().navigate(page, qp);
     }
 
-    public List<UserDTO> filterUsers(List<UserDTO> users, String name) {
-        return users.stream()
-                .filter(userDTO -> userDTO.getLastName().equals(name.trim()))
-                .collect(Collectors.toList());
-    }
-
     public Flux<ChatEvent> getMessages() {
         return messages;
     }
 
     public UnicastProcessor<ChatEvent> getPublisher() {
         return publisher;
+    }
+
+    public String serviceUrl() {
+        InstanceInfo instance = discoveryClient.getNextServerFromEureka("RESOURCE", false);
+        return instance.getHomePageUrl();
     }
 }

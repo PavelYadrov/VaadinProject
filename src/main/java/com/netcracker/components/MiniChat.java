@@ -2,7 +2,7 @@ package com.netcracker.components;
 
 import com.netcracker.dto.MessageDTO;
 import com.netcracker.dto.RoomDTO;
-import com.netcracker.dto.UserDTO;
+import com.netcracker.service.UserService;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
@@ -12,7 +12,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import reactor.core.publisher.Flux;
 
 import java.util.Date;
 
@@ -21,7 +20,7 @@ import java.util.Date;
 @Data
 @CssImport("./styles/mini-components.css")
 public class MiniChat extends HorizontalLayout {
-    private String imageRoute = "http://localhost:8090/images/";
+    private String imageRoute;
 
     private Long roomId;
 
@@ -36,7 +35,7 @@ public class MiniChat extends HorizontalLayout {
 
     private RoomDTO room;
 
-    public MiniChat(RoomDTO roomDTO, Flux<ChatEvent> messages, UserDTO user) {
+    public MiniChat(RoomDTO roomDTO, UserService userService) {
         addClassName("mini-chat");
 
         this.room = roomDTO;
@@ -51,6 +50,8 @@ public class MiniChat extends HorizontalLayout {
         username.addClassName("chat-username");
         lastUpdate.addClassName("last-update");
         lastMessage.addClassName("last-message");
+
+        imageRoute = userService.serviceUrl() + "images/";
 
         firstLine.add(username);
         secondLine.add(lastMessage, lastUpdate);

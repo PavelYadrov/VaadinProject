@@ -122,7 +122,7 @@ public class AdvertisementsList extends VerticalLayout {
         } else {
             this.advertisements = feignUserService.getAdvertisementsBySearch(token, params).getBody();
         }
-        miniAdvertisementFields = this.advertisements.stream().map(MiniAdvertisement::new)
+        miniAdvertisementFields = this.advertisements.stream().map(advertisementDTO -> new MiniAdvertisement(advertisementDTO, userService))
                 .collect(Collectors.toList());
 
         if (miniAdvertisementFields.isEmpty() && !pageParam.equals("1")) {

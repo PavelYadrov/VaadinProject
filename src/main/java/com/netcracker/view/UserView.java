@@ -54,7 +54,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
     private String param;
 
-    private String imageRoute = "http://localhost:8090/images/";
+    private String imageRoute;
 
     private List<AdvertisementDTO> usersAdvertisements;
 
@@ -163,6 +163,8 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             advertisements.setMaxHeight("600px");
             advertisements.setMinWidth("400px");
             advertisements.setSizeFull();
+
+            imageRoute = userService.serviceUrl() + "images/";
 
             add(changePasswordWindow, changeStatusWindow);
         }
@@ -318,7 +320,7 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             advs.getStyle().set("overflow", "auto");
             usersAdvertisements.stream()
                     .map(advertisementDTO -> {
-                        MiniAdvertisement min = new MiniAdvertisement(advertisementDTO);
+                        MiniAdvertisement min = new MiniAdvertisement(advertisementDTO, userService);
                         if (min.getDescription().getText().length() > 20) {
                             min.getDescription().setText(min.getDescription().getText().substring(0, 20) + "...");
                         }

@@ -119,7 +119,7 @@ public class ChatView extends VerticalLayout implements BeforeLeaveObserver {
     }
 
     private MiniChat setMiniChat(RoomDTO roomDTO) {
-        MiniChat miniChat = new MiniChat(roomDTO, messages, user);
+        MiniChat miniChat = new MiniChat(roomDTO, userService);
         miniChat.setRoomId(roomDTO.getId());
         miniChat.addClickListener(horizontalLayoutClickEvent -> {
             chat.loadChat(roomDTO, token);

@@ -56,7 +56,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private Image currentImage = new Image();
     private Image avatar = new Image();
 
-    private String imageRoute = "http://localhost:8090/images/";
+    private String imageRoute;
 
     private HorizontalLayout firstImagesLayer = new HorizontalLayout();
     private HorizontalLayout secondImagesLayer = new HorizontalLayout();
@@ -143,6 +143,8 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
                 changeAdvertisement.close();
                 changeAdvertisement.removeAll();
             });
+
+            imageRoute = userService.serviceUrl() + "images/";
         }
     }
 

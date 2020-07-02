@@ -1,6 +1,7 @@
 package com.netcracker.components;
 
 import com.netcracker.dto.AdvertisementDTO;
+import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Image;
@@ -21,7 +22,7 @@ import java.util.Map;
 @CssImport("./styles/mini-components.css")
 public class MiniAdvertisement extends HorizontalLayout {
 
-    private String imageRoute = "http://localhost:8090/images/";
+    private String imageRoute;
 
     private Image currentImage;
     private Span name;
@@ -31,7 +32,8 @@ public class MiniAdvertisement extends HorizontalLayout {
 
     private Span thirdLine = new Span();
 
-    public MiniAdvertisement(AdvertisementDTO advertisement){
+    public MiniAdvertisement(AdvertisementDTO advertisement, UserService userService) {
+        imageRoute = userService.serviceUrl() + "images/";
         if (advertisement.getUrls().isEmpty()) {
             currentImage = new Image(imageRoute + "no-image.png", "faceImage");
         } else {

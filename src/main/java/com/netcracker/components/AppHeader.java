@@ -15,18 +15,14 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.VaadinService;
+import feign.FeignException;
 import reactor.core.publisher.Flux;
 
 import javax.servlet.http.Cookie;
 
 @CssImport("./styles/app-header.css")
 public class AppHeader extends HorizontalLayout {
-
-    private VerticalLayout view;
-
-    private FeederThread thread;
 
     protected Flux<ChatEvent> messagesFlux;
 
@@ -40,9 +36,8 @@ public class AppHeader extends HorizontalLayout {
 
     private String token;
 
-    public AppHeader(Boolean mainButton, Boolean messagesButton, Boolean disabledName, UserDTO userDTO,
-                     FeignUserService feignUserService, UserService userService, VerticalLayout view) {
-        this.view = view;
+    public AppHeader(Boolean mainButton, Boolean messagesButton, Boolean activeName,
+                     UserDTO userDTO, FeignUserService feignUserService, UserService userService) {
         this.userDTO = userDTO;
         this.feign = feignUserService;
         this.messagesFlux = userService.getMessages();
@@ -70,7 +65,8 @@ public class AppHeader extends HorizontalLayout {
 
         Span username = new Span(userDTO.getFirstName() + " " + userDTO.getLastName() + "!");
         username.addClassName("user-href");
-        if (disabledName) {
+
+        if (activeName) {
             username.addClickListener(spanClickEvent -> {
                 userService.setParam("user", userDTO.getId().toString());
             });
@@ -96,6 +92,19 @@ public class AppHeader extends HorizontalLayout {
         } else {
             add(button, user);
         }
+
+        try {
+            feign.roleCheck(token);
+            Button users = new Button("Users");
+            users.addClassName("users-button");
+            users.addClickListener(buttonClickEvent -> {
+                UI.getCurrent().navigate("users");
+            });
+            users.setSizeFull();
+            add(users);
+        } catch (FeignException.Forbidden e) {
+        }
+
         if (messagesButton) {
             messages = new Button("Messages");
             messages.addClickListener(buttonClickEvent -> {
@@ -111,7 +120,7 @@ public class AppHeader extends HorizontalLayout {
             messages.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
             messages.addClassName("messages-button");
             if (feign.hasUnreadMessages(userService.getCookieByName("Authentication")).getBody()) {
-                Icon icon = new Icon(VaadinIcon.CIRCLE);
+                icon = new Icon(VaadinIcon.CIRCLE);
                 icon.setColor("red");
                 messages.setIcon(icon);
                 messages.setIconAfterText(true);
@@ -123,57 +132,31 @@ public class AppHeader extends HorizontalLayout {
         }
     }
 
-    private class FeederThread extends Thread {
-        private final UI ui;
-        private final VerticalLayout view;
-
-        private int count = 0;
-
-        public FeederThread(UI ui, VerticalLayout view) {
-            this.ui = ui;
-            this.view = view;
-        }
-
-        @Override
-        public void run() {
-            subscribe(ui);
-        }
-
-        public void subscribe(UI ui) {
-            messagesFlux.subscribe(message -> {
-                if (userDTO.getId().equals(message.getMessage().getReceiverId())) {
-                    try {
-                        ui.access(() -> {
-                            if (icon == null) {
-                                icon = new Icon(VaadinIcon.CIRCLE);
-                                icon.setColor("red");
-                                messages.setIcon(icon);
-                                messages.setIconAfterText(true);
-                            }
-                        });
-                    } catch (Exception e) {
-                        Thread thread = Thread.currentThread();
-                        System.out.println(thread.toString());
-                        thread.interrupt();
-                        e.printStackTrace();
-                    }
-
-                }
-            });
-        }
-    }
-
     @Override
     protected void onAttach(AttachEvent attachEvent) {
-        thread = new FeederThread(attachEvent.getUI(), view);
-        thread.start();
+        super.onAttach(attachEvent);
+        subscribe(attachEvent.getUI());
     }
 
     @Override
     protected void onDetach(DetachEvent detachEvent) {
         super.onDetach(detachEvent);
-        thread.interrupt();
-        thread = null;
     }
 
+    private void subscribe(UI ui) {
+        messagesFlux.subscribe(message -> {
+            if (!ui.isClosing()) {
+                if (userDTO.getId().equals(message.getMessage().getReceiverId())) {
+                    ui.access(() -> {
+                        if (icon == null) {
+                            icon = new Icon(VaadinIcon.CIRCLE);
+                            icon.setColor("red");
+                            messages.setIcon(icon);
+                            messages.setIconAfterText(true);
+                        }
+                    });
+                }
+            }
+        });
+    }
 }

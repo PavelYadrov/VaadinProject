@@ -190,7 +190,11 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
 
     private void loadUserPage() {
         this.removeAll();
-        add(new AppHeader(true, true, false, user, feign, userService, this));
+        if (owner.getId().equals(user.getId())) {
+            add(new AppHeader(true, true, false, user, feign, userService));
+        } else {
+            add(new AppHeader(true, true, true, user, feign, userService));
+        }
 
         if (deleteListener != null) deleteListener.remove();
         if (passListener != null) passListener.remove();

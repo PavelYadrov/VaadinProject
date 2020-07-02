@@ -15,6 +15,7 @@ import com.vaadin.flow.component.html.Label;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.BeanValidationBinder;
+import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.ValueContext;
 import org.springframework.http.HttpStatus;
@@ -40,8 +41,8 @@ public class AdvertisementAdd extends VerticalLayout {
     public  AdvertisementAdd(UserDTO user, FeignUserService feignUserService,
                             UserService userService, Dialog dialog, String qp){
         addClassName("advertisement-add");
-        this.userService=userService;
-        binder= new BeanValidationBinder<>(AdvertisementAddBinder.class);
+        this.userService = userService;
+        binder = new BeanValidationBinder<AdvertisementAddBinder>(AdvertisementAddBinder.class);
         headAdvertisement.addClassName("adv-head");
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         submitButton.setMaxWidth("800");
@@ -59,25 +60,31 @@ public class AdvertisementAdd extends VerticalLayout {
         submitButton.addClickListener(buttonClickEvent -> {
             AdvertisementDTO advertisement = new AdvertisementDTO();
             String token = userService.getCookieByName("Authentication");
+            try {
+                AdvertisementAddBinder advertisementAddBinder = new AdvertisementAddBinder();
+                binder.writeBean(advertisementAddBinder);
 
-            if (qp == null) {
-                advertisement.setCategory_id(Long.parseLong("1"));
-            } else advertisement.setCategory_id(Long.parseLong(qp));
-            advertisement.setUser_id(user.getId());
-            advertisement.setName(name.getValue().trim());
-            advertisement.setDescription(description.getValue().trim());
-            advertisement.setDate(new Date());
-            advertisement.setPrice(Double.parseDouble(price.getValue()));
-            advertisement.setUrls(new ArrayList<>());
+                if (qp == null) {
+                    advertisement.setCategory_id(Long.parseLong("1"));
+                } else advertisement.setCategory_id(Long.parseLong(qp));
+                advertisement.setUser_id(user.getId());
+                advertisement.setName(name.getValue().trim());
+                advertisement.setDescription(description.getValue().trim());
+                advertisement.setDate(new Date());
+                advertisement.setPrice(Double.parseDouble(price.getValue()));
+                advertisement.setUrls(new ArrayList<>());
 
-            imagesField.getImages().forEach(advertisementImage -> {
-                advertisement.getUrls().add(feignUserService.addImage(token, advertisementImage).getBody());
-            });
-            if (feignUserService.addAdvertisement(token, advertisement).getStatusCode() == HttpStatus.OK) {
-                imagesField.getImages().clear();
-                dialog.close();
-                dialog.removeAll();
-                UI.getCurrent().getPage().reload();
+                imagesField.getImages().forEach(advertisementImage -> {
+                    advertisement.getUrls().add(feignUserService.addImage(token, advertisementImage).getBody());
+                });
+                if (feignUserService.addAdvertisement(token, advertisement).getStatusCode() == HttpStatus.OK) {
+                    imagesField.getImages().clear();
+                    dialog.close();
+                    dialog.removeAll();
+                    UI.getCurrent().getPage().reload();
+                }
+
+            } catch (ValidationException e) {
             }
         });
         Div wrapper = new Div();

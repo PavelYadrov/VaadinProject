@@ -168,7 +168,7 @@ public class AdvertisementView extends VerticalLayout implements HasUrlParameter
     private void loadAdvertisement(AdvertisementDTO advertisementDTO) {
         this.removeAll();
 
-        add(new AppHeader(true, true, true, user, feign, userService, this));
+        add(new AppHeader(true, true, true, user, feign, userService));
         Div content = new Div(images, info);
         content.addClassName("content-adv");
         add(content);

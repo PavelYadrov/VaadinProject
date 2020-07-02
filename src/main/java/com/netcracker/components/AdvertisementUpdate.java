@@ -74,11 +74,10 @@ public class AdvertisementUpdate extends VerticalLayout {
 
         submitButton.addClickListener(buttonClickEvent -> {
             String token = userService.getCookieByName("Authentication");
-            advertisementDTO.setName(name.getValue());
-            advertisementDTO.setDescription(description.getValue());
-            advertisementDTO.setPrice(Double.parseDouble(price.getValue()));
+            if (!name.getValue().isEmpty()) advertisementDTO.setName(name.getValue());
+            if (!description.getValue().isEmpty()) advertisementDTO.setDescription(description.getValue());
+            if (!price.getValue().isEmpty()) advertisementDTO.setPrice(Double.parseDouble(price.getValue()));
             if (admin) {
-                advertisementDTO.setUser_id(advertisementDTO.getUser_id());
                 advertisementDTO.setCategory_id(Long.parseLong(category.getValue()));
                 feignUserService.adminUpdateAdvertisement(token, advertisementDTO);
                 dialog.close();

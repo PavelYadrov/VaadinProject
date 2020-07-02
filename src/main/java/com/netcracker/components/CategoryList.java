@@ -6,6 +6,7 @@ import com.netcracker.service.CategoryService;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.accordion.Accordion;
 import com.vaadin.flow.component.accordion.AccordionPanel;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -35,6 +36,7 @@ public class CategoryList extends FormLayout {
     private String token;
     private String parentCategoryId;
 
+    private Accordion accordion = new Accordion();
     private Dialog dialog = new Dialog();
     private TextField category = new TextField("Add or delete category");
     private Button add = new Button("add");
@@ -73,9 +75,17 @@ public class CategoryList extends FormLayout {
                 }
             });
 
-            add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            if (deleteListener != null) deleteListener.remove();
+            deleteListener = delete.addClickListener(buttonClickEvent -> {
+                feign.deleteCategory(token, parentCategoryId);
+                dialog.close();
+                dialog.removeAll();
+                UI.getCurrent().getPage().reload();
+            });
 
-            add(mainPanel);
+            add.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            accordion.add(mainPanel);
+            add(accordion);
         } catch (FeignException.Forbidden | FeignException.BadRequest e) {
             UI.getCurrent().getPage().setLocation("login");
         }
@@ -142,14 +152,6 @@ public class CategoryList extends FormLayout {
             categoryDTO.setDescription("think about it");
             categoryDTO.setName(category.getValue());
             feign.addCategory(token, categoryDTO);
-            dialog.close();
-            dialog.removeAll();
-            UI.getCurrent().getPage().reload();
-        });
-        if (deleteListener != null) deleteListener.remove();
-
-        deleteListener = delete.addClickListener(buttonClickEvent -> {
-            feign.deleteCategory(token, id);
             dialog.close();
             dialog.removeAll();
             UI.getCurrent().getPage().reload();

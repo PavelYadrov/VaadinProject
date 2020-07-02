@@ -73,7 +73,7 @@ public class MainView extends VerticalLayout implements HasUrlParameter<String> 
             Div content = new Div(categoryList, advertisementsList);
             content.addClassName("content");
             content.setSizeFull();
-            add(new AppHeader(false, true, true, user, feign, userService, this));
+            add(new AppHeader(false, true, true, user, feign, userService));
             add(content);
             addClassName("main-view");
         } else {

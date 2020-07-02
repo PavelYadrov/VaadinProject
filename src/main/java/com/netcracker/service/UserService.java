@@ -1,6 +1,7 @@
 package com.netcracker.service;
 
 import com.netcracker.components.ChatEvent;
+import com.netcracker.dto.UserDTO;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.Location;
@@ -17,6 +18,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements Serializable {
@@ -91,7 +93,7 @@ public class UserService implements Serializable {
     }
 
     public String validatePrice(String price) {
-        if (price == null) {
+        if (price == null || StringUtils.isEmpty(price)) {
             return "Can't be empty";
         }
         if ((price.startsWith("0") && price.length() < 2) || (price.startsWith("0") && price.charAt(1) != '.')) {
@@ -133,6 +135,12 @@ public class UserService implements Serializable {
 
         QueryParameters qp = new QueryParameters(parametersMap);
         UI.getCurrent().navigate(page, qp);
+    }
+
+    public List<UserDTO> filterUsers(List<UserDTO> users, String name) {
+        return users.stream()
+                .filter(userDTO -> userDTO.getLastName().equals(name.trim()))
+                .collect(Collectors.toList());
     }
 
     public Flux<ChatEvent> getMessages() {

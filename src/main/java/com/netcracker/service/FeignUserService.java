@@ -109,4 +109,7 @@ public interface FeignUserService {
     @PostMapping(value = "api/user/setRead")
     ResponseEntity<String> setMessageRead(@RequestHeader(name = "Authentication") String token, @RequestBody String id);
 
+    @PostMapping(value = "api/admin/getAllUsers")
+    ResponseEntity<List<UserDTO>> getAllUsers(@RequestHeader(name = "Authentication") String token, @RequestBody(required = false) String username);
+
 }

@@ -17,7 +17,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.shared.Registration;
-import org.apache.commons.lang.SystemUtils;
 import reactor.core.publisher.UnicastProcessor;
 
 import java.util.List;
@@ -76,20 +75,13 @@ public class Chat extends VerticalLayout {
         messagesWindow.getStyle().set("overflow-y", "auto");
         messagesWindow.addClassName("message-window");
 
-
-
     }
-
     public void loadChat(RoomDTO roomDTO, String token) {
         this.removeAll();
         messagesWindow.removeAll();
         if (messageListener != null) messageListener.remove();
         if (usernameListener != null) usernameListener.remove();
-        if (SystemUtils.IS_OS_WINDOWS) {
-            imageRoute = userService.serviceUrl() + "images/";
-        } else {
-            imageRoute = feign.getImageUrl(token).getBody();
-        }
+        imageRoute = feign.getImageUrl(token).getBody();
 
         if (roomDTO != null) {
             sendMessage.onEnabledStateChanged(true);

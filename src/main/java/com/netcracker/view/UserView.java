@@ -29,7 +29,6 @@ import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.shared.Registration;
 import feign.FeignException;
-import org.apache.commons.lang.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -165,11 +164,9 @@ public class UserView extends VerticalLayout implements HasUrlParameter<String> 
             advertisements.setMinWidth("400px");
             advertisements.setSizeFull();
 
-            if (SystemUtils.IS_OS_WINDOWS) {
-                imageRoute = userService.serviceUrl() + "images/";
-            } else {
-                imageRoute = feign.getImageUrl(token).getBody();
-            }
+
+            imageRoute = feign.getImageUrl(token).getBody();
+
 
             add(changePasswordWindow, changeStatusWindow);
         }

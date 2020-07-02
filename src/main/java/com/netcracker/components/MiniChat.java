@@ -13,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.apache.commons.lang.SystemUtils;
 
 import java.util.Date;
 
@@ -41,6 +40,7 @@ public class MiniChat extends HorizontalLayout {
         addClassName("mini-chat");
 
         this.room = roomDTO;
+        imageRoute = feign.getImageUrl(token).getBody();
 
         currentImage.setSrc(imageRoute + roomDTO.getUrl());
         currentImage.setWidth("100px");
@@ -53,11 +53,6 @@ public class MiniChat extends HorizontalLayout {
         lastUpdate.addClassName("last-update");
         lastMessage.addClassName("last-message");
 
-        if (SystemUtils.IS_OS_WINDOWS) {
-            imageRoute = userService.serviceUrl() + "images/";
-        } else {
-            imageRoute = feign.getImageUrl(token).getBody();
-        }
 
         firstLine.add(username);
         secondLine.add(lastMessage, lastUpdate);

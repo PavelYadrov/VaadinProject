@@ -1,6 +1,7 @@
 package com.netcracker.view;
 
 
+import com.netcracker.components.AvatarField;
 import com.netcracker.dto.UserRegisterDTO;
 import com.netcracker.service.FeignUserService;
 import com.netcracker.service.UserService;
@@ -21,6 +22,7 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.ValidationException;
 import com.vaadin.flow.data.binder.ValidationResult;
 import com.vaadin.flow.data.binder.ValueContext;
+import com.vaadin.flow.data.validator.EmailValidator;
 import com.vaadin.flow.router.Route;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,10 +58,12 @@ public class RegistrationView extends VerticalLayout {
         passwordField2 = new PasswordField("Password again");
         Span errorMessage = new Span();
         Button submitButton = new Button("Sing up");
+        AvatarField avatar = new AvatarField();
+
         submitButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
         FormLayout formLayout = new FormLayout(title, username, firstnameField, lastnameField, passwordField1, passwordField2,
-                emailField, errorMessage, submitButton);
+                emailField, avatar, errorMessage, submitButton);
 
         formLayout.setMaxWidth("500px");
         formLayout.getStyle().set("margin", "0 auto");
@@ -89,7 +93,8 @@ public class RegistrationView extends VerticalLayout {
 
         binder.forField(username).withValidator(this::validateUsername).asRequired().bind("username");
 
-        binder.forField(emailField).asRequired().bind("email");
+        binder.forField(emailField).asRequired("Email is not valid").withValidator(new EmailValidator(
+                "This doesn't look like a valid email address")).bind("email");
 
         binder.forField(passwordField1).asRequired().withValidator(this::passwordValidator).bind("password");
 
@@ -106,6 +111,15 @@ public class RegistrationView extends VerticalLayout {
             try {
 
                 UserRegisterDTO newUser = new UserRegisterDTO();
+
+                binder.writeBean(newUser);
+
+                if (avatar.getValue() != null) {
+                    String url = feignUserService.addImage("", avatar.getValue()).getBody();
+                    newUser.setAvatar(url);
+                } else {
+                    newUser.setAvatar("no-avatar.png");
+                }
 
                 binder.writeBean(newUser);
 

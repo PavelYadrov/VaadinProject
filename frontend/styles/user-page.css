@@ -1,0 +1,32 @@
+.user-page {
+    margin: 0 auto;
+    max-width: 1300px;
+    display: flex;
+}
+
+.user-avatar, .user-info {
+    flex: 1;
+    width: 100%;
+}
+
+.user-avatar {
+    min-width: 600px;
+    min-height: 600px;
+}
+
+.user {
+    font-size: 25px;
+    font-weight: 500;
+    text-align: left;
+}
+
+#button {
+    cursor: pointer;
+}
+
+.mini-avatar {
+    border-radius: 200px 200px 200px 200px;
+    -moz-border-radius: 200px 200px 200px 200px;
+    -webkit-border-radius: 200px 200px 200px 200px;
+    border: 0px solid #000000;
+}

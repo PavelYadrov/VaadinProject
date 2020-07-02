@@ -1,0 +1,50 @@
+.main-header {
+    margin: 0 auto;
+    max-width: 1300px;
+    background-color: #2761af;
+    color: #F0F0F0;
+    display: inline-block;
+
+}
+
+.span-username, .username {
+    max-width: 200px;
+    position: relative;
+    float: right;
+    margin: 5px;
+    color: #f9eff4;
+    font-size: 20px;
+    font-weight: 200;
+}
+
+.button-logout, .button-main, .users-button {
+    max-width: 120px;
+    margin: 5px;
+    position: relative;
+    background-color: #FFFFFF;
+    cursor: pointer;
+}
+
+.button-logout:hover, .button-main:hover, .users-button:hover {
+    background-color: #F0F0F0;
+    border: solid #95CDFF 1px;
+}
+
+.button-logout, .messages-button {
+    cursor: pointer;
+    float: right;
+}
+
+.button-main, .users-button {
+    float: left;
+}
+
+.username {
+    margin: 0;
+}
+
+.user-href:hover {
+    color: #95CDFF;
+    cursor: pointer;
+}
+

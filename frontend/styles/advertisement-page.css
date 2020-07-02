@@ -1,0 +1,50 @@
+.content-adv {
+    margin: 0 auto;
+    max-width: 1300px;
+    display: flex;
+}
+
+.info {
+    flex: 1;
+}
+
+.images {
+    flex: 1;
+}
+
+.firstLine {
+    display: inline-block;
+}
+
+.price-adv {
+    float: right;
+    font-size: 27px;
+    font-weight: bold;
+    color: #00a80d;
+}
+
+.title-adv {
+    float: left;
+    font-size: 27px;
+    font-weight: bold;
+    color: black;
+}
+
+.description-adv, .person-adv, .change-adv {
+    font-size: 20px;
+    font-weight: 500;
+    text-align: left;
+    line-break: anywhere;
+}
+
+.full-name {
+    cursor: pointer;
+    color: #1c8bff;
+    font-size: 20px;
+    font-weight: 500;
+    text-align: left;
+}
+
+.full-name:hover {
+    color: #255fff;
+}

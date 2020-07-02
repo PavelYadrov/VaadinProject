@@ -1,21 +1,21 @@
 package com.netcracker.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
-public class UserDTO {
+public class MessageDTO {
     private Long id;
+    private String text;
     private String username;
+    private Date messageDate;
+    private Long senderId;
+    private Long receiverId;
+    private Long roomId;
+    private Boolean read;
     private String firstName;
     private String lastName;
-    private String email;
-    private Status status;
-    private String avatar;
-    private Date regDate;
 }

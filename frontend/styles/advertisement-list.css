@@ -1,0 +1,45 @@
+.advertisements-head {
+    display: inline-block;
+    height: 100px;
+}
+
+.search-button {
+    float: right;
+    cursor: pointer;
+}
+
+.advertisements-list {
+    padding: 0;
+}
+
+.next-page {
+    float: right;
+    width: 100%;
+    max-width: 131px;
+    cursor: pointer;
+}
+
+.prev-page {
+    width: 100%;
+    max-width: 131px;
+    cursor: pointer;
+}
+
+.info {
+    text-align: center;
+}
+
+.page-info {
+    font-size: 21px;
+    font-weight: 600;
+    text-align: center;
+    margin: 0;
+    padding-top: 3px;
+}
+
+.page-info-not {
+    font-size: 21px;
+    font-weight: 600;
+    text-align: center;
+    width: 100%;
+}
